@@ -17,12 +17,15 @@ export function ProgressBar() {
     if (processingImages.length > 0) {
       // Start polling for status updates
       const interval = setInterval(async () => {
+        console.log('🔄 Polling status for', processingImages.length, 'images');
         for (const image of processingImages) {
           try {
+            console.log('📊 Checking status for image:', image.id);
             const status = await ImageService.getImageStatus(image.id);
+            console.log('📊 Status received:', status);
             updateImageStatus(image.id, status);
           } catch (error) {
-            console.error('Failed to get image status:', error);
+            console.error('❌ Failed to get image status:', error);
             updateImageStatus(image.id, {
               id: image.id,
               status: 'failed',

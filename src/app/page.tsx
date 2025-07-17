@@ -91,6 +91,27 @@ export default function HomePage() {
             >
               🎲 Random Design
             </button>
+            
+            <button
+              onClick={async () => {
+                // Refresh all processing images
+                const processingImages = images.filter(img => img.status === 'processing');
+                console.log('🔄 Refreshing', processingImages.length, 'processing images');
+                for (const image of processingImages) {
+                  try {
+                    const response = await fetch(`/api/status/${image.id}`);
+                    const data = await response.json();
+                    console.log('📊 Status update:', data);
+                    useImageStore.getState().updateImageStatus(image.id, data.data);
+                  } catch (error) {
+                    console.error('Failed to refresh image:', error);
+                  }
+                }
+              }}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              🔄 Refresh Status
+            </button>
           </section>
 
           {/* Image Gallery */}
