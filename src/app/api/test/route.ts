@@ -18,20 +18,27 @@ export async function GET(req: NextRequest) {
       tests: {} as any
     };
 
-    // Test 1: Basic API endpoint accessibility
+    // Test 1: API Status endpoint (system health)
     try {
-      const response = await ky.get(`${API_URL}/health`, {
+      const response = await ky.get(`${API_URL}/status`, {
+        headers: {
+          'Authorization': `Bearer ${API_TOKEN}`
+        },
         timeout: 10000,
         retry: 0
       });
       
-      testResults.tests.healthCheck = {
+      const statusData = await response.json() as any;
+      testResults.tests.systemStatus = {
         status: 'success',
         httpStatus: response.status,
-        response: await response.text()
+        systemStatus: statusData.status,
+        healthyIntegrations: statusData.data?.healthy_integrations_count,
+        totalIntegrations: statusData.data?.total_integrations_count,
+        healthPercentage: statusData.data?.healthy_percentage
       };
     } catch (error) {
-      testResults.tests.healthCheck = {
+      testResults.tests.systemStatus = {
         status: 'failed',
         error: error instanceof Error ? error.message : 'Unknown error'
       };

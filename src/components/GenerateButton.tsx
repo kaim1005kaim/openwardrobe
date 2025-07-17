@@ -34,6 +34,19 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
     setGenerating(true);
 
     try {
+      // Check system status before generating
+      console.log('🔍 Checking API system status...');
+      const statusResponse = await fetch('/api/test');
+      const statusData = await statusResponse.json();
+      
+      if (statusData.tests?.systemStatus?.systemStatus !== 'ok') {
+        console.warn('⚠️ API system status:', statusData.tests?.systemStatus);
+        if (statusData.tests?.systemStatus?.status === 'failed') {
+          throw new Error('API system is currently unavailable');
+        }
+      } else {
+        console.log('✅ API system status: OK');
+      }
       // Generate multiple images based on count
       const generatePromises = Array.from({ length: settings.count }, async () => {
         const prompt = PromptGenerator.generatePrompt(designOptions, {
