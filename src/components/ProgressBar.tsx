@@ -23,26 +23,42 @@ export function ProgressBar() {
   
   useEffect(() => {
     if (mounted && processingImages.length > 0) {
-      // Start polling for status updates
-      const interval = setInterval(async () => {
+      // Start polling for status updates with adaptive interval
+      const pollImages = async () => {
         console.log('🔄 Polling status for', processingImages.length, 'images');
-        for (const image of processingImages) {
+        
+        // Use Promise.allSettled to handle all requests concurrently
+        const statusPromises = processingImages.map(async (image) => {
           try {
             console.log('📊 Checking status for image:', image.id);
             const status = await ImageService.getImageStatus(image.id);
-            console.log('📊 Status received:', status);
+            console.log('📊 Status received for', image.id, ':', {
+              status: status.status,
+              progress: status.progress,
+              url: status.url,
+              upscaled_urls: status.upscaled_urls
+            });
             updateImageStatus(image.id, status);
+            return { success: true, id: image.id };
           } catch (error) {
-            console.error('❌ Failed to get image status:', error);
+            console.error('❌ Failed to get image status for', image.id, ':', error);
             updateImageStatus(image.id, {
               id: image.id,
               status: 'failed',
               error: 'Failed to get status'
             });
+            return { success: false, id: image.id };
           }
-        }
-      }, 3000); // Poll every 3 seconds
+        });
 
+        await Promise.allSettled(statusPromises);
+      };
+
+      // Initial poll
+      pollImages();
+
+      // Set up interval with adaptive timing
+      const interval = setInterval(pollImages, 2000); // Poll every 2 seconds for faster updates
       setPollingInterval(interval);
 
       return () => {
@@ -57,21 +73,21 @@ export function ProgressBar() {
         setPollingInterval(null);
       }
     }
-  }, [mounted, processingImages, updateImageStatus]);
+  }, [mounted, processingImages.length, updateImageStatus]); // Remove processingImages from deps to avoid constant re-renders
 
   if (!mounted || processingImages.length === 0) {
     return null;
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-gray-700 rounded-lg p-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Generating Images
+        <h3 className="text-lg font-semibold text-white">
+          画像生成中
         </h3>
-        <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex items-center space-x-2 text-sm text-gray-300">
           <Loader2 className="w-4 h-4 animate-spin" />
-          <span>{processingImages.length} in progress</span>
+          <span>{processingImages.length}件処理中</span>
         </div>
       </div>
 
@@ -82,12 +98,12 @@ export function ProgressBar() {
       </div>
 
       {/* Overall Progress */}
-      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-          <span>Overall Progress</span>
-          <span>{processingImages.length} remaining</span>
+      <div className="mt-6 pt-4 border-t border-gray-600">
+        <div className="flex items-center justify-between text-sm text-gray-300 mb-2">
+          <span>全体の進捗</span>
+          <span>残り{processingImages.length}件</span>
         </div>
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+        <div className="w-full bg-gray-600 rounded-full h-2">
           <div
             className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all duration-300"
             style={{
@@ -118,14 +134,14 @@ function ImageProgressItem({ image }: { image: GeneratedImage }) {
   const getStatusText = () => {
     switch (image.status) {
       case 'in-progress':
-        return 'Processing...';
+        return '処理中...';
       case 'completed':
-        return 'Completed';
+        return '完了';
       case 'failed':
-        return 'Failed';
+        return '失敗';
       case 'pending':
       default:
-        return 'Pending';
+        return '待機中';
     }
   };
 
@@ -142,15 +158,15 @@ function ImageProgressItem({ image }: { image: GeneratedImage }) {
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+    <div className="bg-gray-600 rounded-lg p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center space-x-2">
           {getStatusIcon()}
-          <span className="text-sm font-medium text-gray-900 dark:text-white">
-            Design #{image.id.slice(-6)}
+          <span className="text-sm font-medium text-white">
+            デザイン #{image.id.slice(-6)}
           </span>
         </div>
-        <span className="text-xs text-gray-500 dark:text-gray-400">
+        <span className="text-xs text-gray-300">
           {getStatusText()}
         </span>
       </div>
@@ -158,17 +174,17 @@ function ImageProgressItem({ image }: { image: GeneratedImage }) {
       {/* Progress Bar */}
       {(image.status === 'pending' || image.status === 'in-progress') && (
         <div className="space-y-2">
-          <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+          <div className="w-full bg-gray-700 rounded-full h-2">
             <div
               className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${getProgress()}%` }}
             />
           </div>
-          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex justify-between text-xs text-gray-300">
             <span>
               {image.progress !== undefined && image.progress !== null 
-                ? 'Generating with ImagineAPI...' 
-                : 'Estimating progress...'}
+                ? 'ImagineAPIで生成中...' 
+                : '進捗を推定中...'}
             </span>
             <span>{Math.round(getProgress())}%</span>
           </div>

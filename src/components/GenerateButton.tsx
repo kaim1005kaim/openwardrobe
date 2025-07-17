@@ -81,6 +81,57 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
 
       // Show success message
       console.log('🎨 Generation started for', settings.count, 'image(s)');
+
+      // Start enhanced polling for new images
+      const startEnhancedPolling = () => {
+        let pollCount = 0;
+        const maxPolls = 60; // Maximum 2 minutes of polling
+        
+        const enhancedPoll = setInterval(async () => {
+          pollCount++;
+          
+          try {
+            // Check if we have any pending/in-progress images
+            const currentImages = useImageStore.getState().images;
+            const processingImages = currentImages.filter(img => 
+              img.status === 'pending' || img.status === 'in-progress'
+            );
+            
+            if (processingImages.length === 0 || pollCount >= maxPolls) {
+              clearInterval(enhancedPoll);
+              return;
+            }
+            
+            // Also sync from API periodically to catch any missed updates
+            if (pollCount % 10 === 0) { // Every 20 seconds
+              const response = await fetch('/api/test');
+              const data = await response.json();
+              
+              if (data.tests?.authTest?.recentImages) {
+                data.tests.authTest.recentImages.forEach((img: any) => {
+                  if (img.status === 'completed' && img.url) {
+                    const existingImage = currentImages.find(existing => existing.id === img.id);
+                    if (existingImage && (existingImage.status === 'pending' || existingImage.status === 'in-progress')) {
+                      useImageStore.getState().updateImageStatus(img.id, {
+                        id: img.id,
+                        status: img.status,
+                        url: img.url,
+                        upscaled_urls: img.upscaled_urls,
+                        progress: img.progress
+                      });
+                    }
+                  }
+                });
+              }
+            }
+          } catch (error) {
+            console.error('❌ Enhanced polling error:', error);
+          }
+        }, 2000); // Poll every 2 seconds
+      };
+
+      // Start enhanced polling
+      startEnhancedPolling();
       
     } catch (error) {
       console.error('❌ Generation failed:', error);
@@ -102,21 +153,21 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
   };
 
   const getButtonText = () => {
-    if (isGenerating) return 'Generating...';
-    if (!canGenerate()) return 'Select options to generate';
-    return `Generate ${settings.count} Design${settings.count > 1 ? 's' : ''}`;
+    if (isGenerating) return '生成中...';
+    if (!canGenerate()) return 'オプションを選択してください';
+    return `デザインを${settings.count}個生成`;
   };
 
   return (
     <div className="flex flex-col items-center space-y-4">
       {/* Settings Panel */}
       {showSettings && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md">
+        <div className="bg-gray-700 rounded-lg p-4 w-full">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Generation Settings</h3>
+            <h3 className="text-lg font-semibold text-white">生成設定</h3>
             <button
               onClick={() => setShowSettings(false)}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              className="text-gray-400 hover:text-gray-200"
             >
               ×
             </button>
@@ -125,51 +176,51 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
           <div className="space-y-4">
             {/* Creativity Level */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Creativity Level
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                創造性レベル
               </label>
               <select
                 value={settings.creativityLevel}
                 onChange={(e) => setSettings(prev => ({ ...prev, creativityLevel: e.target.value as 'conservative' | 'balanced' | 'experimental' | 'maximum' }))}
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white"
               >
-                <option value="conservative">Conservative</option>
-                <option value="balanced">Balanced</option>
-                <option value="experimental">Experimental</option>
-                <option value="maximum">Maximum</option>
+                <option value="conservative">控えめ</option>
+                <option value="balanced">バランス</option>
+                <option value="experimental">実験的</option>
+                <option value="maximum">最大</option>
               </select>
             </div>
 
             {/* Quality */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Quality
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                品質
               </label>
               <select
                 value={settings.quality}
                 onChange={(e) => setSettings(prev => ({ ...prev, quality: e.target.value as 'standard' | 'high' | 'ultra' }))}
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white"
               >
-                <option value="standard">Standard</option>
-                <option value="high">High</option>
-                <option value="ultra">Ultra</option>
+                <option value="standard">標準</option>
+                <option value="high">高品質</option>
+                <option value="ultra">最高品質</option>
               </select>
             </div>
 
             {/* Count */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Number of Images
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                生成枚数
               </label>
               <select
                 value={settings.count}
                 onChange={(e) => setSettings(prev => ({ ...prev, count: parseInt(e.target.value) }))}
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white"
               >
-                <option value={1}>1 Image</option>
-                <option value={2}>2 Images</option>
-                <option value={3}>3 Images</option>
-                <option value={4}>4 Images</option>
+                <option value={1}>1枚</option>
+                <option value={2}>2枚</option>
+                <option value={3}>3枚</option>
+                <option value={4}>4枚</option>
               </select>
             </div>
           </div>
@@ -177,60 +228,61 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
       )}
 
       {/* Main Generate Button */}
-      <div className="flex items-center space-x-3">
+      <div className="w-full">
         <button
           onClick={handleGenerate}
           disabled={!canGenerate() || isGenerating || disabled}
-          className={`flex items-center space-x-2 px-8 py-4 rounded-xl font-semibold text-lg transition-all transform hover:scale-105 disabled:scale-100 disabled:opacity-50 disabled:cursor-not-allowed ${
+          className={`w-full flex items-center justify-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all ${
             canGenerate() && !isGenerating
-              ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg'
-              : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+              ? 'bg-purple-600 hover:bg-purple-700 text-white'
+              : 'bg-gray-600 text-gray-400 cursor-not-allowed'
           }`}
         >
           {isGenerating ? (
-            <Loader2 className="w-6 h-6 animate-spin" />
+            <Loader2 className="w-5 h-5 animate-spin" />
           ) : (
-            <Wand2 className="w-6 h-6" />
+            <Wand2 className="w-5 h-5" />
           )}
           <span>{getButtonText()}</span>
-          {!isGenerating && <Sparkles className="w-5 h-5" />}
+          {!isGenerating && <Sparkles className="w-4 h-4" />}
         </button>
 
         {/* Settings Button */}
         <button
           onClick={() => setShowSettings(!showSettings)}
-          className="p-3 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-          title="Generation Settings"
+          className="w-full mt-2 p-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors text-sm"
+          title="生成設定"
         >
-          <Settings className="w-6 h-6" />
+          <Settings className="w-4 h-4 inline mr-1" />
+          設定
         </button>
       </div>
 
       {/* Generation Info */}
       {canGenerate() && !isGenerating && (
-        <div className="text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Ready to generate with{' '}
+        <div className="w-full">
+          <p className="text-sm text-gray-400 mb-2">
+            選択された設定:{' '}
             {[
-              designOptions.trend && `${designOptions.trend} trend`,
-              designOptions.colorScheme && `${designOptions.colorScheme} colors`,
-              designOptions.mood && `${designOptions.mood} mood`,
-              designOptions.season && `${designOptions.season} season`
-            ].filter(Boolean).join(', ')}
+              designOptions.trend && `${designOptions.trend}トレンド`,
+              designOptions.colorScheme && `${designOptions.colorScheme}カラー`,
+              designOptions.mood && `${designOptions.mood}ムード`,
+              designOptions.season && `${designOptions.season}シーズン`
+            ].filter(Boolean).join('、')}
           </p>
         </div>
       )}
 
       {/* Quick Action Buttons */}
-      <div className="flex flex-wrap gap-2 justify-center">
+      <div className="w-full flex gap-2">
         <button
           onClick={() => {
             const randomOptions = PromptGenerator.generateRandomDesign();
             useImageStore.getState().setDesignOptions(randomOptions);
           }}
-          className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
+          className="flex-1 px-3 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors text-sm"
         >
-          🎲 Random
+          🎲 ランダム
         </button>
         
         <button
@@ -242,9 +294,9 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
               season: 'spring'
             });
           }}
-          className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
+          className="flex-1 px-3 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors text-sm"
         >
-          🗑️ Clear
+          🗑️ クリア
         </button>
       </div>
     </div>

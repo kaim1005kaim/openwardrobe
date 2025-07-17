@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
     // Test 2: Authentication test (if token available)
     if (API_TOKEN && API_TOKEN !== '__DUMMY_IMAGINE_TOKEN__') {
       try {
-        const response = await ky.get(`${API_URL}/items/images`, {
+        const response = await ky.get(`${API_URL}/items/images/`, {
           headers: {
             'Authorization': `Bearer ${API_TOKEN}`
           },
@@ -55,10 +55,19 @@ export async function GET(req: NextRequest) {
           retry: 0
         });
         
+        const data = await response.json() as any;
         testResults.tests.authTest = {
           status: 'success',
           httpStatus: response.status,
-          message: 'Authentication successful'
+          message: 'Authentication successful',
+          imageCount: data.data ? data.data.length : 0,
+          recentImages: data.data ? data.data.slice(0, 3).map((img: any) => ({
+            id: img.id,
+            status: img.status,
+            url: img.url,
+            upscaled_urls: img.upscaled_urls,
+            prompt: img.prompt?.substring(0, 50) + '...'
+          })) : []
         };
       } catch (error) {
         const httpError = error as any;
@@ -72,6 +81,39 @@ export async function GET(req: NextRequest) {
       testResults.tests.authTest = {
         status: 'skipped',
         message: 'No API token configured'
+      };
+    }
+
+    // Test 3: Check specific image status (if found in Discord)
+    try {
+      const specificImageId = 'TEX7EmAcegu0k_SxVdvwo'; // ID from Discord screenshot
+      const response = await ky.get(`${API_URL}/items/images/${specificImageId}`, {
+        headers: {
+          'Authorization': `Bearer ${API_TOKEN}`
+        },
+        timeout: 10000,
+        retry: 0
+      });
+      
+      const data = await response.json() as any;
+      testResults.tests.specificImageTest = {
+        status: 'success',
+        httpStatus: response.status,
+        imageData: {
+          id: data.data.id,
+          status: data.data.status,
+          url: data.data.url,
+          upscaled_urls: data.data.upscaled_urls,
+          progress: data.data.progress,
+          prompt: data.data.prompt?.substring(0, 100) + '...'
+        }
+      };
+    } catch (error) {
+      const httpError = error as any;
+      testResults.tests.specificImageTest = {
+        status: 'failed',
+        httpStatus: httpError.response?.status,
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
 
