@@ -42,7 +42,7 @@ export interface ImageGenerationRequest {
   prompt: string;
   designOptions: DesignOptions;
   ref?: string; // For variations and upscaling
-  action?: 'generate' | 'upscale' | 'variation' | 'blend';
+  action?: 'generate' | 'upscale' | 'variation' | 'blend' | 'subtle' | 'strong' | 'animate' | 'regenerate' | 'remix' | 'vary';
   index?: 1 | 2 | 3 | 4; // For upscale actions
 }
 

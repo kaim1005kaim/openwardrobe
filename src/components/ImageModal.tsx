@@ -92,7 +92,7 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
       const newImageId = await ImageService.generateImage({
         prompt: enhancedPrompt,
         designOptions: image.designOptions,
-        action: actionType,
+        action: actionType as 'generate' | 'upscale' | 'variation' | 'blend' | 'subtle' | 'strong' | 'animate' | 'regenerate' | 'remix' | 'vary',
         ref: image.id
       });
 

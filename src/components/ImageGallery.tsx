@@ -154,7 +154,7 @@ function ImageCard({ image, isFavorite, onToggleFavorite, onRemove, onVariation,
       const newImageId = await ImageService.generateImage({
         prompt: newPrompt,
         designOptions: image.designOptions,
-        action: 'variation',
+        action: 'variation' as const,
         ref: image.id
       });
 
@@ -251,7 +251,7 @@ function ImageCard({ image, isFavorite, onToggleFavorite, onRemove, onVariation,
       const newImageId = await ImageService.generateImage({
         prompt: enhancedPrompt,
         designOptions: image.designOptions,
-        action: action,
+        action: action as 'subtle' | 'strong' | 'animate',
         ref: image.id
       });
 
