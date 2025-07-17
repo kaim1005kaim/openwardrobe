@@ -11,8 +11,10 @@ export function ProgressBar() {
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
   const [mounted, setMounted] = useState(false);
 
-  // Get currently processing images
-  const processingImages = images.filter(img => img.status === 'processing');
+  // Get currently processing images (updated for ImagineAPI status)
+  const processingImages = images.filter(img => 
+    img.status === 'pending' || img.status === 'in-progress'
+  );
 
   // Prevent hydration issues
   useEffect(() => {
@@ -101,12 +103,13 @@ export function ProgressBar() {
 function ImageProgressItem({ image }: { image: GeneratedImage }) {
   const getStatusIcon = () => {
     switch (image.status) {
-      case 'processing':
+      case 'in-progress':
         return <Loader2 className="w-4 h-4 animate-spin text-blue-500" />;
       case 'completed':
         return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'failed':
         return <XCircle className="w-4 h-4 text-red-500" />;
+      case 'pending':
       default:
         return <Clock className="w-4 h-4 text-gray-400" />;
     }
@@ -114,21 +117,22 @@ function ImageProgressItem({ image }: { image: GeneratedImage }) {
 
   const getStatusText = () => {
     switch (image.status) {
-      case 'processing':
+      case 'in-progress':
         return 'Processing...';
       case 'completed':
         return 'Completed';
       case 'failed':
         return 'Failed';
+      case 'pending':
       default:
         return 'Pending';
     }
   };
 
   const getProgress = () => {
-    // Use actual progress from API if available
+    // Use actual progress from API if available (ImagineAPI returns 0-100)
     if (image.progress !== undefined && image.progress !== null) {
-      return Math.round(image.progress * 100); // Convert decimal to percentage
+      return Math.round(image.progress); // Progress is already 0-100
     }
     
     // Fallback: estimate based on time elapsed
@@ -152,7 +156,7 @@ function ImageProgressItem({ image }: { image: GeneratedImage }) {
       </div>
 
       {/* Progress Bar */}
-      {image.status === 'processing' && (
+      {(image.status === 'pending' || image.status === 'in-progress') && (
         <div className="space-y-2">
           <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
             <div

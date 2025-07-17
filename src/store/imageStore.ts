@@ -53,7 +53,7 @@ export const useImageStore = create<ImageStore>()(
                 status: status.status,
                 progress: status.progress,
                 imageUrl: status.url || image.imageUrl,
-                thumbnailUrl: status.thumbnail || image.thumbnailUrl
+                upscaled_urls: status.upscaled_urls || image.upscaled_urls
               }
             : image
         )
@@ -94,7 +94,7 @@ export const useImageStore = create<ImageStore>()(
         images: state.images.map(img => ({
           ...img,
           // Don't persist processing states
-          status: img.status === 'processing' ? 'failed' : img.status
+          status: (img.status === 'pending' || img.status === 'in-progress') ? 'failed' : img.status
         })),
         favorites: state.favorites,
         currentDesignOptions: state.currentDesignOptions

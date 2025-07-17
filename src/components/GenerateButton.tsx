@@ -67,7 +67,7 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
         const newImage = {
           id: imageId,
           prompt,
-          status: 'processing' as const,
+          status: 'pending' as const,
           timestamp: new Date(),
           designOptions,
           variations: []

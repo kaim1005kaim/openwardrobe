@@ -66,10 +66,11 @@ function ImageCard({ image, isFavorite, onToggleFavorite, onRemove, onVariation 
     switch (image.status) {
       case 'completed':
         return 'text-green-600 dark:text-green-400';
-      case 'processing':
+      case 'in-progress':
         return 'text-blue-600 dark:text-blue-400';
       case 'failed':
         return 'text-red-600 dark:text-red-400';
+      case 'pending':
       default:
         return 'text-gray-600 dark:text-gray-400';
     }
@@ -79,10 +80,11 @@ function ImageCard({ image, isFavorite, onToggleFavorite, onRemove, onVariation 
     switch (image.status) {
       case 'completed':
         return 'Completed';
-      case 'processing':
+      case 'in-progress':
         return 'Processing...';
       case 'failed':
         return 'Failed';
+      case 'pending':
       default:
         return 'Pending';
     }
@@ -114,7 +116,7 @@ function ImageCard({ image, isFavorite, onToggleFavorite, onRemove, onVariation 
           const upscaleImage = {
             id: upscaleId,
             prompt: image.prompt + ' (upscaled)',
-            status: 'processing' as const,
+            status: 'pending' as const,
             timestamp: new Date(),
             designOptions: image.designOptions
           };
@@ -134,7 +136,7 @@ function ImageCard({ image, isFavorite, onToggleFavorite, onRemove, onVariation 
       const newImage = {
         id: newImageId,
         prompt: newPrompt,
-        status: 'processing' as const,
+        status: 'pending' as const,
         timestamp: new Date(),
         designOptions: image.designOptions
       };
@@ -194,7 +196,7 @@ function ImageCard({ image, isFavorite, onToggleFavorite, onRemove, onVariation 
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            {image.status === 'processing' ? (
+            {image.status === 'pending' || image.status === 'in-progress' ? (
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
                 <p className="text-gray-600 dark:text-gray-400">Generating...</p>
@@ -239,7 +241,7 @@ function ImageCard({ image, isFavorite, onToggleFavorite, onRemove, onVariation 
                 <Share2 className="w-5 h-5 text-gray-700 dark:text-gray-300" />
               </button>
               <button
-                onClick={() => window.open(image.imageUrl, '_blank')}
+                onClick={() => image.imageUrl && window.open(image.imageUrl, '_blank')}
                 className="p-2 bg-white dark:bg-gray-800 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 title="View Full Size"
               >

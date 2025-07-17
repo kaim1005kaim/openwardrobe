@@ -21,12 +21,12 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
 
-    // Real API call
-    const response = await ky.post(`${API_URL}/items/images`, {
+    // Real API call (based on ImagineAPI documentation)
+    const response = await ky.post(`${API_URL}/items/images/`, {
       json: {
         prompt,
-        ref,
-        model: API_MODEL
+        model: API_MODEL,
+        ...(ref && { ref })
       },
       headers: {
         'Authorization': `Bearer ${API_TOKEN}`,

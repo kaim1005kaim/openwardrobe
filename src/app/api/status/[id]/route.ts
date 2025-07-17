@@ -21,7 +21,7 @@ export async function GET(
       }, { status: 500 });
     }
 
-    // Real API call
+    // Real API call (based on ImagineAPI documentation)
     const response = await ky.get(`${API_URL}/items/images/${id}`, {
       headers: {
         'Authorization': `Bearer ${API_TOKEN}`

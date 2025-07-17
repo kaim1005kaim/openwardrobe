@@ -101,7 +101,9 @@ export default function HomePage() {
             <button
               onClick={async () => {
                 // Refresh all processing images
-                const processingImages = images.filter(img => img.status === 'processing');
+                const processingImages = images.filter(img => 
+                  img.status === 'pending' || img.status === 'in-progress'
+                );
                 console.log('🔄 Refreshing', processingImages.length, 'processing images');
                 for (const image of processingImages) {
                   try {

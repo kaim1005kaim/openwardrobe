@@ -16,10 +16,10 @@ export type StyleType = 'dress' | 'casual' | 'business' | 'evening' | 'athletic'
 export interface GeneratedImage {
   id: string;
   prompt: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  progress?: number; // Progress as decimal (0.0 to 1.0)
-  imageUrl?: string;
-  thumbnailUrl?: string;
+  status: 'pending' | 'in-progress' | 'completed' | 'failed';
+  progress?: number | null; // Progress as 0-100 or null
+  imageUrl?: string | null;
+  upscaled_urls?: string[];
   timestamp: Date;
   designOptions: DesignOptions;
   variations?: GeneratedImage[];
@@ -27,12 +27,15 @@ export interface GeneratedImage {
 
 export interface ImageStatus {
   id: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  progress?: number;
-  url?: string;
-  thumbnail?: string;
-  upscaled?: boolean;
-  error?: string;
+  status: 'pending' | 'in-progress' | 'completed' | 'failed';
+  progress?: number | null;
+  url?: string | null;
+  upscaled_urls?: string[];
+  error?: string | null;
+  ref?: string;
+  prompt?: string;
+  user_created?: string;
+  date_created?: string;
 }
 
 export interface ImageGenerationRequest {
