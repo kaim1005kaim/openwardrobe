@@ -69,7 +69,7 @@ export class ImageService {
         ref: id,
         action: 'upscale',
         index,
-        designOptions: request.designOptions
+        designOptions: { trend: null, colorScheme: null, mood: null, season: 'spring' }
       });
     } catch (error) {
       console.error('Upscaling failed:', error);
@@ -88,7 +88,7 @@ export class ImageService {
         ref: id,
         action: 'variation',
         index,
-        designOptions: request.designOptions
+        designOptions: { trend: null, colorScheme: null, mood: null, season: 'spring' }
       });
     } catch (error) {
       console.error('Variation creation failed:', error);
@@ -106,7 +106,7 @@ export class ImageService {
         prompt: blendPrompt,
         ref: id1,
         action: 'blend',
-        designOptions: request.designOptions
+        designOptions: { trend: null, colorScheme: null, mood: null, season: 'spring' }
       });
     } catch (error) {
       console.error('Image blending failed:', error);

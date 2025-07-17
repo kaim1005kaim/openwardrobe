@@ -15,9 +15,13 @@ interface GenerateButtonProps {
 export function GenerateButton({ designOptions, disabled = false }: GenerateButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [settings, setSettings] = useState({
-    creativityLevel: 'balanced' as const,
-    quality: 'high' as const,
+  const [settings, setSettings] = useState<{
+    creativityLevel: 'conservative' | 'balanced' | 'experimental' | 'maximum';
+    quality: 'standard' | 'high' | 'ultra';
+    count: number;
+  }>({
+    creativityLevel: 'balanced',
+    quality: 'high',
     count: 1
   });
 

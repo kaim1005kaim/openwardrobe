@@ -50,10 +50,10 @@ export function DesignPicker({ value, onChange }: DesignPickerProps) {
     { id: 'winter', name: 'Winter', description: 'Deep, warm, protective', icon: <Snowflake className="w-5 h-5" /> }
   ];
 
-  const handleSelection = (type: keyof DesignOptions, value: string | null) => {
+  const handleSelection = (type: keyof DesignOptions, selectedValue: string | null) => {
     onChange({
       ...value,
-      [type]: value[type] === value ? null : value // Toggle selection
+      [type]: value[type] === selectedValue ? null : selectedValue // Toggle selection
     });
   };
 
