@@ -1,5 +1,5 @@
 import ky from 'ky';
-import { ImageGenerationRequest, ImageStatus, GeneratedImage } from './types';
+import { ImageGenerationRequest, ImageStatus } from './types';
 
 const API_URL = process.env.IMAGINE_API_URL || 'https://cl.imagineapi.dev';
 const API_TOKEN = process.env.IMAGINE_API_TOKEN || '__DUMMY_IMAGINE_TOKEN__';
@@ -69,7 +69,7 @@ export class ImageService {
         ref: id,
         action: 'upscale',
         index,
-        designOptions: {} as any // Will be filled from original
+        designOptions: request.designOptions
       });
     } catch (error) {
       console.error('Upscaling failed:', error);
@@ -88,7 +88,7 @@ export class ImageService {
         ref: id,
         action: 'variation',
         index,
-        designOptions: {} as any // Will be filled from original
+        designOptions: request.designOptions
       });
     } catch (error) {
       console.error('Variation creation failed:', error);
@@ -106,7 +106,7 @@ export class ImageService {
         prompt: blendPrompt,
         ref: id1,
         action: 'blend',
-        designOptions: {} as any // Will be filled from original
+        designOptions: request.designOptions
       });
     } catch (error) {
       console.error('Image blending failed:', error);
@@ -155,7 +155,16 @@ export class ImageService {
     };
   }
 
-  private static mockData = new Map<string, any>();
+  private static mockData = new Map<string, {
+    id: string;
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+    progress?: number;
+    prompt: string;
+    designOptions: any;
+    url?: string;
+    thumbnail?: string;
+    error?: string;
+  }>();
 
   private static simulateProcessing(id: string) {
     const mockData = ImageService.mockData.get(id);

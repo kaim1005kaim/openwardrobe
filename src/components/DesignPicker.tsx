@@ -50,14 +50,14 @@ export function DesignPicker({ value, onChange }: DesignPickerProps) {
     { id: 'winter', name: 'Winter', description: 'Deep, warm, protective', icon: <Snowflake className="w-5 h-5" /> }
   ];
 
-  const handleSelection = (type: keyof DesignOptions, value: any) => {
+  const handleSelection = (type: keyof DesignOptions, value: string | null) => {
     onChange({
       ...value,
       [type]: value[type] === value ? null : value // Toggle selection
     });
   };
 
-  const isSelected = (type: keyof DesignOptions, id: any) => {
+  const isSelected = (type: keyof DesignOptions, id: string | null) => {
     return value[type] === id;
   };
 
@@ -74,7 +74,7 @@ export function DesignPicker({ value, onChange }: DesignPickerProps) {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as 'trend' | 'color' | 'mood' | 'season')}
               className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'

@@ -12,7 +12,13 @@ interface ImageGalleryProps {
 }
 
 export function ImageGallery({ images }: ImageGalleryProps) {
-  const { toggleFavorite, favorites, removeImage, addImage } = useImageStore();
+  const { toggleFavorite, favorites, removeImage } = useImageStore();
+  
+  // Handler for creating image variations
+  const onVariation = (image: GeneratedImage, type: 'color' | 'pattern' | 'mood' | 'upscale') => {
+    // This handler is defined at ImageCard level
+    console.log('Variation requested for image:', image.id, 'type:', type);
+  };
 
   if (images.length === 0) {
     return (
@@ -37,7 +43,7 @@ export function ImageGallery({ images }: ImageGalleryProps) {
           isFavorite={favorites.includes(image.id)}
           onToggleFavorite={() => toggleFavorite(image.id)}
           onRemove={() => removeImage(image.id)}
-          onVariation={(type) => handleVariation(image, type)}
+          onVariation={(type) => onVariation(image, type)}
         />
       ))}
     </div>

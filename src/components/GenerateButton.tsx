@@ -31,7 +31,7 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
 
     try {
       // Generate multiple images based on count
-      const generatePromises = Array.from({ length: settings.count }, async (_, index) => {
+      const generatePromises = Array.from({ length: settings.count }, async () => {
         const prompt = PromptGenerator.generatePrompt(designOptions, {
           creativityLevel: settings.creativityLevel,
           includeSeasonalConsistency: true,
@@ -107,7 +107,7 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
               </label>
               <select
                 value={settings.creativityLevel}
-                onChange={(e) => setSettings(prev => ({ ...prev, creativityLevel: e.target.value as any }))}
+                onChange={(e) => setSettings(prev => ({ ...prev, creativityLevel: e.target.value as 'conservative' | 'balanced' | 'experimental' | 'maximum' }))}
                 className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="conservative">Conservative</option>
@@ -124,7 +124,7 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
               </label>
               <select
                 value={settings.quality}
-                onChange={(e) => setSettings(prev => ({ ...prev, quality: e.target.value as any }))}
+                onChange={(e) => setSettings(prev => ({ ...prev, quality: e.target.value as 'standard' | 'high' | 'ultra' }))}
                 className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="standard">Standard</option>

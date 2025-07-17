@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Loader2, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { useImageStore } from '@/store/imageStore';
 import { ImageService } from '@/lib/imageService';
+import { GeneratedImage } from '@/lib/types';
 
 export function ProgressBar() {
   const { images, updateImageStatus } = useImageStore();
@@ -45,7 +46,7 @@ export function ProgressBar() {
         setPollingInterval(null);
       }
     }
-  }, [processingImages.length, updateImageStatus]);
+  }, [processingImages, updateImageStatus]);
 
   if (processingImages.length === 0) {
     return null;
@@ -88,7 +89,7 @@ export function ProgressBar() {
   );
 }
 
-function ImageProgressItem({ image }: { image: any }) {
+function ImageProgressItem({ image }: { image: GeneratedImage }) {
   const getStatusIcon = () => {
     switch (image.status) {
       case 'processing':
