@@ -17,6 +17,7 @@ export interface GeneratedImage {
   id: string;
   prompt: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
+  progress?: number; // Progress as decimal (0.0 to 1.0)
   imageUrl?: string;
   thumbnailUrl?: string;
   timestamp: Date;

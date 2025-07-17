@@ -14,12 +14,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
 
-    // Mock implementation for development
-    if (API_TOKEN === '__DUMMY_IMAGINE_TOKEN__') {
-      const mockId = `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      return NextResponse.json({
-        data: { id: mockId }
-      });
+    // Check if API token is properly configured
+    if (!API_TOKEN || API_TOKEN === '__DUMMY_IMAGINE_TOKEN__') {
+      return NextResponse.json({ 
+        error: 'ImagineAPI token not configured. Please set IMAGINE_API_TOKEN environment variable.' 
+      }, { status: 500 });
     }
 
     // Real API call

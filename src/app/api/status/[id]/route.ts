@@ -4,9 +4,6 @@ import ky from 'ky';
 const API_URL = process.env.IMAGINE_API_URL || 'https://cl.imagineapi.dev';
 const API_TOKEN = process.env.IMAGINE_API_TOKEN || '__DUMMY_IMAGINE_TOKEN__';
 
-// Mock data storage for development
-const mockData = new Map<string, any>();
-
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -14,40 +11,11 @@ export async function GET(
   try {
     const { id } = await context.params;
 
-    // Mock implementation for development
-    if (API_TOKEN === '__DUMMY_IMAGINE_TOKEN__') {
-      // Initialize mock data if not exists
-      if (!mockData.has(id)) {
-        mockData.set(id, {
-          id,
-          status: 'processing',
-          progress: 0,
-          startTime: Date.now()
-        });
-        
-        // Simulate processing
-        setTimeout(() => {
-          const data = mockData.get(id);
-          if (data) {
-            data.status = 'completed';
-            data.progress = 100;
-            data.url = `https://picsum.photos/1024/1024?random=${Date.now()}`;
-            data.thumbnail = `https://picsum.photos/512/512?random=${Date.now()}`;
-            mockData.set(id, data);
-          }
-        }, 5000 + Math.random() * 5000); // 5-10 seconds
-      }
-
-      const data = mockData.get(id);
-      
-      // Update progress
-      if (data && data.status === 'processing') {
-        const elapsed = Date.now() - data.startTime;
-        data.progress = Math.min(90, (elapsed / 10000) * 100);
-        mockData.set(id, data);
-      }
-
-      return NextResponse.json({ data });
+    // Check if API token is properly configured
+    if (!API_TOKEN || API_TOKEN === '__DUMMY_IMAGINE_TOKEN__') {
+      return NextResponse.json({ 
+        error: 'ImagineAPI token not configured. Please set IMAGINE_API_TOKEN environment variable.' 
+      }, { status: 500 });
     }
 
     // Real API call

@@ -51,6 +51,7 @@ export const useImageStore = create<ImageStore>()(
             ? { 
                 ...image, 
                 status: status.status,
+                progress: status.progress,
                 imageUrl: status.url || image.imageUrl,
                 thumbnailUrl: status.thumbnail || image.thumbnailUrl
               }

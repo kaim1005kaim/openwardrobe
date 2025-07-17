@@ -117,9 +117,14 @@ function ImageProgressItem({ image }: { image: GeneratedImage }) {
   };
 
   const getProgress = () => {
-    // Mock progress calculation
+    // Use actual progress from API if available
+    if (image.progress !== undefined && image.progress !== null) {
+      return Math.round(image.progress * 100); // Convert decimal to percentage
+    }
+    
+    // Fallback: estimate based on time elapsed
     const timeSinceStart = Date.now() - new Date(image.timestamp).getTime();
-    const estimatedDuration = 30000; // 30 seconds
+    const estimatedDuration = 60000; // 60 seconds estimate for Midjourney
     return Math.min(90, (timeSinceStart / estimatedDuration) * 100);
   };
 
@@ -147,7 +152,11 @@ function ImageProgressItem({ image }: { image: GeneratedImage }) {
             />
           </div>
           <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>Generating AI image...</span>
+            <span>
+              {image.progress !== undefined && image.progress !== null 
+                ? 'Generating with ImagineAPI...' 
+                : 'Estimating progress...'}
+            </span>
             <span>{Math.round(getProgress())}%</span>
           </div>
         </div>
