@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useImageStore } from '@/store/imageStore';
 import { DesignPicker } from '@/components/DesignPicker';
 import { GenerateButton } from '@/components/GenerateButton';
@@ -12,11 +12,19 @@ export default function HomePage() {
     currentDesignOptions, 
     setDesignOptions, 
     isGenerating,
-    getRecentImages 
+    getRecentImages,
+    images
   } = useImageStore();
   
   const [showGallery, setShowGallery] = useState(false);
   const recentImages = getRecentImages(12);
+  
+  // Auto-show gallery when there are images
+  useEffect(() => {
+    if (images.length > 0 && !showGallery) {
+      setShowGallery(true);
+    }
+  }, [images.length, showGallery]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -86,7 +94,7 @@ export default function HomePage() {
           </section>
 
           {/* Image Gallery */}
-          {showGallery && (
+          {showGallery && recentImages.length > 0 && (
             <section>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
                 Recent Designs

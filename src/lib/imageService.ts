@@ -1,18 +1,4 @@
-import ky from 'ky';
 import { ImageGenerationRequest, ImageStatus } from './types';
-
-const API_URL = process.env.IMAGINE_API_URL || 'https://cl.imagineapi.dev';
-const API_TOKEN = process.env.IMAGINE_API_TOKEN || '__DUMMY_IMAGINE_TOKEN__';
-
-const api = ky.create({
-  prefixUrl: API_URL,
-  headers: {
-    'Authorization': `Bearer ${API_TOKEN}`,
-    'Content-Type': 'application/json'
-  },
-  timeout: 30000,
-  retry: 2
-});
 
 export class ImageService {
   /**
@@ -20,20 +6,23 @@ export class ImageService {
    */
   static async generateImage(request: ImageGenerationRequest): Promise<string> {
     try {
-      // Mock implementation for development
-      if (API_TOKEN === '__DUMMY_IMAGINE_TOKEN__') {
-        return ImageService.mockGenerateImage(request);
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: request.prompt,
+          ref: request.ref
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate image');
       }
 
-      const response = await api.post('items/images', {
-        json: {
-          prompt: request.prompt,
-          ref: request.ref,
-          model: process.env.IMAGINE_API_MODEL || 'MJ'
-        }
-      }).json<{ data: { id: string } }>();
-
-      return response.data.id;
+      const data = await response.json();
+      return data.data.id;
     } catch (error) {
       console.error('Image generation failed:', error);
       throw new Error('Failed to generate image');
@@ -45,13 +34,14 @@ export class ImageService {
    */
   static async getImageStatus(id: string): Promise<ImageStatus> {
     try {
-      // Mock implementation for development
-      if (API_TOKEN === '__DUMMY_IMAGINE_TOKEN__') {
-        return ImageService.mockGetImageStatus(id);
+      const response = await fetch(`/api/status/${id}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to get image status');
       }
 
-      const response = await api.get(`items/images/${id}`).json<{ data: ImageStatus }>();
-      return response.data;
+      const data = await response.json();
+      return data.data;
     } catch (error) {
       console.error('Failed to get image status:', error);
       throw new Error('Failed to get image status');
@@ -112,79 +102,5 @@ export class ImageService {
       console.error('Image blending failed:', error);
       throw new Error('Failed to blend images');
     }
-  }
-
-  // Mock implementations for development
-  private static async mockGenerateImage(request: ImageGenerationRequest): Promise<string> {
-    console.log('🎨 Mock: Generating image with prompt:', request.prompt);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const mockId = `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Store mock data for status checking
-    ImageService.mockData.set(mockId, {
-      id: mockId,
-      status: 'processing',
-      progress: 0,
-      prompt: request.prompt,
-      designOptions: request.designOptions
-    });
-
-    // Simulate processing
-    ImageService.simulateProcessing(mockId);
-    
-    return mockId;
-  }
-
-  private static async mockGetImageStatus(id: string): Promise<ImageStatus> {
-    const mockData = ImageService.mockData.get(id);
-    
-    if (!mockData) {
-      throw new Error('Image not found');
-    }
-
-    return {
-      id: mockData.id,
-      status: mockData.status,
-      progress: mockData.progress,
-      url: mockData.url,
-      thumbnail: mockData.thumbnail,
-      error: mockData.error
-    };
-  }
-
-  private static mockData = new Map<string, {
-    id: string;
-    status: 'pending' | 'processing' | 'completed' | 'failed';
-    progress?: number;
-    prompt: string;
-    designOptions: any;
-    url?: string;
-    thumbnail?: string;
-    error?: string;
-  }>();
-
-  private static simulateProcessing(id: string) {
-    const mockData = ImageService.mockData.get(id);
-    if (!mockData) return;
-
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.random() * 20;
-      
-      if (progress >= 100) {
-        clearInterval(interval);
-        mockData.status = 'completed';
-        mockData.progress = 100;
-        mockData.url = `https://picsum.photos/1024/1024?random=${Date.now()}`;
-        mockData.thumbnail = `https://picsum.photos/512/512?random=${Date.now()}`;
-      } else {
-        mockData.progress = progress;
-      }
-      
-      ImageService.mockData.set(id, mockData);
-    }, 2000);
   }
 }
