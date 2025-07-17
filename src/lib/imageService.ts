@@ -18,13 +18,23 @@ export class ImageService {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate image');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Generate API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
+        });
+        throw new Error(`API Error ${response.status}: ${errorData.details || errorData.error || 'Failed to generate image'}`);
       }
 
       const data = await response.json();
+      console.log('✅ Image generation started:', data);
       return data.data.id;
     } catch (error) {
-      console.error('Image generation failed:', error);
+      console.error('❌ Image generation failed:', error);
+      if (error instanceof Error) {
+        throw error;
+      }
       throw new Error('Failed to generate image');
     }
   }
@@ -37,13 +47,23 @@ export class ImageService {
       const response = await fetch(`/api/status/${id}`);
       
       if (!response.ok) {
-        throw new Error('Failed to get image status');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Status API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
+        });
+        throw new Error(`Status API Error ${response.status}: ${errorData.details || errorData.error || 'Failed to get image status'}`);
       }
 
       const data = await response.json();
+      console.log('✅ Status check result:', data);
       return data.data;
     } catch (error) {
-      console.error('Failed to get image status:', error);
+      console.error('❌ Status check failed:', error);
+      if (error instanceof Error) {
+        throw error;
+      }
       throw new Error('Failed to get image status');
     }
   }

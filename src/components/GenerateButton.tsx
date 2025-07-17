@@ -70,8 +70,14 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
       console.log('🎨 Generation started for', settings.count, 'image(s)');
       
     } catch (error) {
-      console.error('Generation failed:', error);
-      alert('Failed to generate image. Please try again.');
+      console.error('❌ Generation failed:', error);
+      
+      // Show detailed error message
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to generate image. Please try again.';
+      
+      alert(`Generation failed: ${errorMessage}`);
     } finally {
       setIsGenerating(false);
       setGenerating(false);

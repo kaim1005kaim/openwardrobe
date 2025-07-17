@@ -8,8 +8,11 @@ export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  let id: string = 'unknown';
+  
   try {
-    const { id } = await context.params;
+    const params = await context.params;
+    id = params.id;
 
     // Check if API token is properly configured
     if (!API_TOKEN || API_TOKEN === '__DUMMY_IMAGINE_TOKEN__') {
@@ -26,11 +29,40 @@ export async function GET(
       timeout: 30000
     }).json<{ data: any }>();
 
+    console.log(`✅ Status check successful for ${id}:`, response);
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Failed to get image status:', error);
+    console.error(`❌ Status check failed for ${id || 'unknown'}:`, error);
+    
+    // More detailed error logging
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+    }
+    
+    // Handle specific HTTP errors
+    if (error && typeof error === 'object' && 'response' in error) {
+      const httpError = error as any;
+      console.error('HTTP Status:', httpError.response?.status);
+      console.error('HTTP Response:', await httpError.response?.text?.());
+      
+      return NextResponse.json(
+        { 
+          error: 'API status check failed',
+          details: `HTTP ${httpError.response?.status}: ${httpError.message}`,
+          imageId: id || 'unknown',
+          apiUrl: API_URL
+        },
+        { status: httpError.response?.status || 500 }
+      );
+    }
+    
     return NextResponse.json(
-      { error: 'Failed to get image status' },
+      { 
+        error: 'Failed to get image status',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        imageId: id || 'unknown',
+        apiUrl: API_URL
+      },
       { status: 500 }
     );
   }

@@ -35,11 +35,41 @@ export async function POST(req: NextRequest) {
       timeout: 30000
     }).json<{ data: { id: string } }>();
 
+    console.log('✅ Image generation request successful:', response);
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Image generation failed:', error);
+    console.error('❌ Image generation failed:', error);
+    
+    // More detailed error logging
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+    
+    // Handle specific HTTP errors
+    if (error && typeof error === 'object' && 'response' in error) {
+      const httpError = error as any;
+      console.error('HTTP Status:', httpError.response?.status);
+      console.error('HTTP Response:', await httpError.response?.text?.());
+      
+      return NextResponse.json(
+        { 
+          error: 'API request failed',
+          details: `HTTP ${httpError.response?.status}: ${httpError.message}`,
+          apiUrl: API_URL,
+          hasToken: !!API_TOKEN && API_TOKEN !== '__DUMMY_IMAGINE_TOKEN__'
+        },
+        { status: httpError.response?.status || 500 }
+      );
+    }
+    
     return NextResponse.json(
-      { error: 'Failed to generate image' },
+      { 
+        error: 'Failed to generate image',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        apiUrl: API_URL,
+        hasToken: !!API_TOKEN && API_TOKEN !== '__DUMMY_IMAGINE_TOKEN__'
+      },
       { status: 500 }
     );
   }
