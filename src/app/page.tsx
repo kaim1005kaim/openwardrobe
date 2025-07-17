@@ -17,14 +17,20 @@ export default function HomePage() {
   } = useImageStore();
   
   const [showGallery, setShowGallery] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const recentImages = getRecentImages(12);
+  
+  // Prevent hydration mismatch by waiting for client-side mounting
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // Auto-show gallery when there are images
   useEffect(() => {
-    if (images.length > 0 && !showGallery) {
+    if (mounted && images.length > 0 && !showGallery) {
       setShowGallery(true);
     }
-  }, [images.length, showGallery]);
+  }, [mounted, images.length, showGallery]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -125,36 +131,38 @@ export default function HomePage() {
           )}
 
           {/* Quick Stats */}
-          <section className="mt-12 text-center">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                  {recentImages.length}
+          {mounted && (
+            <section className="mt-12 text-center">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    {recentImages.length}
+                  </div>
+                  <div className="text-gray-600 dark:text-gray-300">
+                    Designs Created
+                  </div>
                 </div>
-                <div className="text-gray-600 dark:text-gray-300">
-                  Designs Created
+                
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+                  <div className="text-2xl font-bold text-pink-600 dark:text-pink-400">
+                    {useImageStore.getState().getFavoriteImages().length}
+                  </div>
+                  <div className="text-gray-600 dark:text-gray-300">
+                    Favorites
+                  </div>
+                </div>
+                
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {recentImages.filter(img => img.status === 'completed').length}
+                  </div>
+                  <div className="text-gray-600 dark:text-gray-300">
+                    Completed
+                  </div>
                 </div>
               </div>
-              
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                <div className="text-2xl font-bold text-pink-600 dark:text-pink-400">
-                  {useImageStore.getState().getFavoriteImages().length}
-                </div>
-                <div className="text-gray-600 dark:text-gray-300">
-                  Favorites
-                </div>
-              </div>
-              
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                  {recentImages.filter(img => img.status === 'completed').length}
-                </div>
-                <div className="text-gray-600 dark:text-gray-300">
-                  Completed
-                </div>
-              </div>
-            </div>
-          </section>
+            </section>
+          )}
         </div>
       </div>
     </div>

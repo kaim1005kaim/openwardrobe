@@ -9,12 +9,18 @@ import { GeneratedImage } from '@/lib/types';
 export function ProgressBar() {
   const { images, updateImageStatus } = useImageStore();
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   // Get currently processing images
   const processingImages = images.filter(img => img.status === 'processing');
+
+  // Prevent hydration issues
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   useEffect(() => {
-    if (processingImages.length > 0) {
+    if (mounted && processingImages.length > 0) {
       // Start polling for status updates
       const interval = setInterval(async () => {
         console.log('🔄 Polling status for', processingImages.length, 'images');
@@ -49,9 +55,9 @@ export function ProgressBar() {
         setPollingInterval(null);
       }
     }
-  }, [processingImages, updateImageStatus]);
+  }, [mounted, processingImages, updateImageStatus]);
 
-  if (processingImages.length === 0) {
+  if (!mounted || processingImages.length === 0) {
     return null;
   }
 
