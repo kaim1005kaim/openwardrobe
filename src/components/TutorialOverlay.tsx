@@ -118,59 +118,41 @@ export function TutorialOverlay({ isVisible, onClose, onOpenSettings }: Tutorial
 
   return (
     <div className="fixed inset-0 z-[9999]">
-      {/* Simple dark backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      {/* Dark backdrop with spotlight cutout */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       
-      {/* Highlighted element overlay - highest priority */}
+      {/* Spotlight cutout area - make the highlighted element area brighter */}
       {spotlightPosition && (
         <>
-          {/* Main highlight box - very bright and visible */}
+          {/* Create a "window" where the element can be seen clearly */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="absolute pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="absolute pointer-events-none bg-white/20"
             style={{
-              left: spotlightPosition.left - 6,
-              top: spotlightPosition.top - 6,
-              width: spotlightPosition.width + 12,
-              height: spotlightPosition.height + 12,
-              borderRadius: '12px',
-              border: '4px solid #7B61FF',
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              left: spotlightPosition.left - 15,
+              top: spotlightPosition.top - 15,
+              width: spotlightPosition.width + 30,
+              height: spotlightPosition.height + 30,
+              borderRadius: '16px',
+              backdropFilter: 'brightness(2) contrast(1.5)',
+              border: '3px solid #7B61FF',
               boxShadow: `
-                0 0 0 2px #FFFFFF,
-                0 0 20px #7B61FF,
-                0 0 40px #7B61FF,
-                0 0 60px rgba(123, 97, 255, 0.8)
+                0 0 0 2px rgba(255, 255, 255, 0.8),
+                0 0 30px #7B61FF,
+                0 0 60px rgba(123, 97, 255, 0.8),
+                inset 0 0 20px rgba(255, 255, 255, 0.1)
               `,
               zIndex: 10001
             }}
           />
           
-          {/* Bright inner glow */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="absolute pointer-events-none"
-            style={{
-              left: spotlightPosition.left - 2,
-              top: spotlightPosition.top - 2,
-              width: spotlightPosition.width + 4,
-              height: spotlightPosition.height + 4,
-              borderRadius: '8px',
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              border: '2px solid rgba(255, 255, 255, 0.5)',
-              zIndex: 10002
-            }}
-          />
-          
-          {/* Pulsing outer ring */}
+          {/* Animated pulse border */}
           <motion.div
             animate={{ 
-              opacity: [0.3, 0.8, 0.3],
-              scale: [1, 1.1, 1]
+              opacity: [0.4, 1, 0.4],
+              scale: [0.95, 1.05, 0.95]
             }}
             transition={{ 
               duration: 2, 
@@ -179,13 +161,36 @@ export function TutorialOverlay({ isVisible, onClose, onOpenSettings }: Tutorial
             }}
             className="absolute pointer-events-none"
             style={{
-              left: spotlightPosition.left - 12,
-              top: spotlightPosition.top - 12,
-              width: spotlightPosition.width + 24,
-              height: spotlightPosition.height + 24,
-              borderRadius: '16px',
-              border: '3px solid #7B61FF',
+              left: spotlightPosition.left - 8,
+              top: spotlightPosition.top - 8,
+              width: spotlightPosition.width + 16,
+              height: spotlightPosition.height + 16,
+              borderRadius: '12px',
+              border: '2px solid #7B61FF',
+              backgroundColor: 'rgba(123, 97, 255, 0.1)',
               zIndex: 10000
+            }}
+          />
+          
+          {/* Expanding attention ring */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ 
+              opacity: [0, 0.8, 0], 
+              scale: [0.8, 1.3, 1.6]
+            }}
+            transition={{ 
+              duration: 3, 
+              repeat: Infinity, 
+              ease: "easeOut"
+            }}
+            className="absolute pointer-events-none border-2 border-purple-400/60 rounded-2xl"
+            style={{
+              left: spotlightPosition.left - 20,
+              top: spotlightPosition.top - 20,
+              width: spotlightPosition.width + 40,
+              height: spotlightPosition.height + 40,
+              zIndex: 9999
             }}
           />
         </>
