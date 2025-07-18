@@ -309,14 +309,39 @@ function getPositionClasses(position: string, spotlightPosition: DOMRect | null)
   const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
   const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
   
-  // Check if sidebar is likely open (element is positioned far left, indicating drawer is open)
+  // Multiple methods to detect if sidebar/drawer is open
   const sidebarWidth = 384; // w-96 = 384px
-  const isSidebarOpen = spotlightPosition.left < sidebarWidth + 50;
+  
+  // Method 1: Check if element is positioned far left
+  const isElementOnLeft = spotlightPosition.left < sidebarWidth;
+  
+  // Method 2: Check for drawer element visibility
+  const drawerElement = typeof window !== 'undefined' ? document.querySelector('[data-tutorial="preset-cards"]') : null;
+  const isDrawerVisible = drawerElement && drawerElement.getBoundingClientRect().left >= 0 && drawerElement.getBoundingClientRect().left < 500;
+  
+  // Method 3: Check for any element that might indicate drawer is open
+  const anyDrawerElement = typeof window !== 'undefined' ? document.querySelector('.bg-surface\\/95, .bg-glass-surface') : null;
+  const hasDrawerInView = anyDrawerElement && anyDrawerElement.getBoundingClientRect().left >= 0 && anyDrawerElement.getBoundingClientRect().left < 500;
+  
+  const isSidebarOpen = isElementOnLeft || isDrawerVisible || hasDrawerInView;
+  
+  // Debug logging
+  if (typeof window !== 'undefined') {
+    console.log('Tutorial positioning debug:', {
+      spotlightLeft: spotlightPosition.left,
+      isElementOnLeft,
+      isDrawerVisible,
+      hasDrawerInView,
+      isSidebarOpen,
+      position
+    });
+  }
 
-  // When sidebar is open, always center the modal in the visible area
-  if (isSidebarOpen) {
-    const visibleCenterX = sidebarWidth + (windowWidth - sidebarWidth) / 2;
+  // When sidebar is open, FORCE center positioning regardless of intended position
+  if (isSidebarOpen || position === 'right') {  // Also force for 'right' position as fallback
+    const visibleCenterX = sidebarWidth + (windowWidth - sidebarWidth) / 2;  // True center of visible area
     const visibleCenterY = windowHeight / 2;
+    console.log('Forcing center position:', { visibleCenterX, visibleCenterY });
     return `top-[${visibleCenterY}px] left-[${visibleCenterX}px] transform -translate-x-1/2 -translate-y-1/2`;
   }
 
