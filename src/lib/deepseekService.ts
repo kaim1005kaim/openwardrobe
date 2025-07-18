@@ -78,10 +78,14 @@ CRITICAL RULES:
 - NEVER include text, words, letters, numbers, or typography in the prompt
 - NEVER mention signs, labels, logos, or written elements
 - Focus ONLY on visual fashion elements, materials, colors, and photography techniques
-- Add "--no text, words, letters, typography, signs, labels" at the end of every prompt
+- ALWAYS specify "single model", "one person only", "fashion lookbook style"
+- ALWAYS specify "clean minimal background", "full body composition"
+- AVOID multiple people, collage layouts, grid compositions, or split-screen effects
+- Add comprehensive --no parameters at the end of every prompt
 
 Output format: Return ONLY the enhanced Midjourney prompt in English, optimized for fashion photography.
-Include camera angles, lighting, fabric details, and artistic style descriptors.`;
+Include camera angles, lighting, fabric details, and artistic style descriptors.
+ALWAYS include composition requirements: single model, clean background, full body shot.`;
 
     const userMessage = `User input: "${userInput}"
 Design preferences: ${JSON.stringify(designOptions)}
@@ -102,9 +106,9 @@ Create an enhanced Midjourney prompt for fashion design.`;
       .replace(/\s+/g, ' ')
       .trim();
     
-    // Add no-text parameters if not already present
+    // Add comprehensive no-parameters if not already present
     if (!cleanedPrompt.includes('--no')) {
-      return `${cleanedPrompt} --no text, words, letters, typography, signs, labels`;
+      return `${cleanedPrompt} --no text, words, letters, typography, signs, labels, multiple people, collage, grid, panels, frames, split screen, comic style, manga panels, multiple angles, contact sheet`;
     }
     
     return cleanedPrompt;

@@ -109,13 +109,25 @@ export class PromptGenerator {
     // Construct final prompt
     let prompt = elements.join(', ');
     
+    // Add composition and framing requirements for ideal fashion photography
+    const compositionElements = [
+      'single model',
+      'one person only', 
+      'clean minimal background',
+      'fashion lookbook style',
+      'full body composition',
+      'professional fashion photography'
+    ];
+    
+    elements.push(...compositionElements);
+    
     // Add technical parameters
     if (settings.aspectRatio) {
       prompt += ` ${settings.aspectRatio}`;
     }
     
-    // Add quality suffix and no-text parameters
-    prompt += ' --v 6.1 --style raw --no text, words, letters, typography, signs, labels';
+    // Add quality suffix and comprehensive no-parameters to avoid unwanted compositions
+    prompt += ' --v 6.1 --style raw --no text, words, letters, typography, signs, labels, multiple people, collage, grid, panels, frames, split screen, comic style, manga panels, multiple angles, contact sheet';
     
     return prompt;
   }
@@ -195,9 +207,9 @@ export class PromptGenerator {
       elements.push(`${options.season} season appropriate`);
     }
     
-    const basePrompt = `Fashion photography, ${elements.join(', ')}, professional lighting, high quality, detailed, modern style`;
+    const basePrompt = `Fashion photography, ${elements.join(', ')}, single model, one person only, clean minimal background, fashion lookbook style, full body composition, professional lighting, high quality, detailed, modern style`;
     
-    return basePrompt + ' --ar 3:4 --v 6.1 --style raw --no text, words, letters, typography, signs, labels';
+    return basePrompt + ' --ar 3:4 --v 6.1 --style raw --no text, words, letters, typography, signs, labels, multiple people, collage, grid, panels, frames, split screen, comic style, manga panels, multiple angles, contact sheet';
   }
 
   /**
@@ -220,9 +232,9 @@ export class PromptGenerator {
       modifiedPrompt = `${selectedColors.join(', ')}, ${modifiedPrompt}`;
     }
     
-    // Ensure no-text parameters are maintained
+    // Ensure comprehensive no-parameters are maintained
     if (!modifiedPrompt.includes('--no')) {
-      modifiedPrompt += ' --no text, words, letters, typography, signs, labels';
+      modifiedPrompt += ' --no text, words, letters, typography, signs, labels, multiple people, collage, grid, panels, frames, split screen, comic style, manga panels, multiple angles, contact sheet';
     }
     
     return modifiedPrompt.replace(/,\s*,/g, ',').trim();
@@ -245,9 +257,9 @@ export class PromptGenerator {
       modifiedPrompt = `${selectedMoods.join(', ')}, ${modifiedPrompt}`;
     }
     
-    // Ensure no-text parameters are maintained
+    // Ensure comprehensive no-parameters are maintained
     if (!modifiedPrompt.includes('--no')) {
-      modifiedPrompt += ' --no text, words, letters, typography, signs, labels';
+      modifiedPrompt += ' --no text, words, letters, typography, signs, labels, multiple people, collage, grid, panels, frames, split screen, comic style, manga panels, multiple angles, contact sheet';
     }
     
     return modifiedPrompt.replace(/,\s*,/g, ',').trim();

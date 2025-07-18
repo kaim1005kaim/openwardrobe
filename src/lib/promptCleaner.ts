@@ -6,13 +6,16 @@ export class PromptCleaner {
    * Remove text-related elements from prompts
    */
   static removeTextElements(prompt: string): string {
-    // Words and phrases that might cause text to appear in images
+    // Words and phrases that might cause text or unwanted compositions to appear in images
     const textKeywords = [
       'text', 'words?', 'letters?', 'typography', 'font', 'signs?', 'labels?',
       'writing', 'written', 'script', 'caption', 'title', 'heading',
       'logo', 'brand', 'branding', 'graphic design', 'poster',
       'advertising', 'banner', 'display text', 'readable',
-      'inscription', 'message', 'slogan', 'tagline'
+      'inscription', 'message', 'slogan', 'tagline',
+      'multiple people', 'crowd', 'group', 'collage', 'grid layout',
+      'split screen', 'panels', 'frames', 'contact sheet', 'comic style',
+      'manga panels', 'multiple angles', 'compilation'
     ];
     
     let cleanedPrompt = prompt;
@@ -34,18 +37,18 @@ export class PromptCleaner {
   }
   
   /**
-   * Add Midjourney no-text parameters
+   * Add comprehensive Midjourney no-parameters for ideal fashion photography
    */
   static addNoTextParameters(prompt: string): string {
-    const noTextParams = '--no text, words, letters, typography, signs, labels, writing';
+    const comprehensiveNoParams = '--no text, words, letters, typography, signs, labels, writing, multiple people, collage, grid, panels, frames, split screen, comic style, manga panels, multiple angles, contact sheet';
     
     // Check if no-text parameters already exist
     if (prompt.includes('--no')) {
       // Update existing --no parameter
-      return prompt.replace(/--no\s+[^-]+/, noTextParams);
+      return prompt.replace(/--no\s+[^-]+/, comprehensiveNoParams);
     } else {
       // Add new --no parameter
-      return `${prompt} ${noTextParams}`;
+      return `${prompt} ${comprehensiveNoParams}`;
     }
   }
   
