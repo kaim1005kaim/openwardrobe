@@ -159,25 +159,25 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
-      <div className="bg-gray-900 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+      <div className="bg-glass-surface backdrop-blur-xl border border-surface/30 rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700 flex-shrink-0">
-          <h2 className="text-xl font-semibold text-white">
+        <div className="flex items-center justify-between p-6 border-b border-surface/30 flex-shrink-0">
+          <h2 className="text-h2 font-semibold text-foreground">
             デザイン詳細
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-800 rounded-full transition-colors"
+            className="p-3 hover:bg-surface/50 rounded-xl transition-all duration-200"
           >
-            <X className="w-6 h-6 text-gray-400" />
+            <X className="w-6 h-6 text-foreground-secondary hover:text-foreground" />
           </button>
         </div>
 
         <div className="flex flex-1 overflow-hidden">
           {/* Left Side - Image */}
           <div className="flex-1 p-6">
-            <div className="bg-gray-800 rounded-lg overflow-hidden">
+            <div className="bg-surface/30 rounded-2xl overflow-hidden border border-surface/20">
               <div className="aspect-square relative">
                 {image.status === 'completed' && image.imageUrl ? (
                   <SelectableImageGrid
@@ -190,10 +190,10 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
                     onFavorite={(quadrant) => console.log('Favorite quadrant:', quadrant)}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
+                  <div className="w-full h-full flex items-center justify-center bg-surface/20">
                     <div className="text-center">
-                      <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-400 mb-4"></div>
-                      <p className="text-gray-300">生成中...</p>
+                      <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-accent mb-4"></div>
+                      <p className="text-foreground-secondary">生成中...</p>
                     </div>
                   </div>
                 )}
@@ -201,17 +201,17 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
             </div>
 
             {/* Image Info */}
-            <div className="mt-4 space-y-2">
+            <div className="mt-6 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400">作成日時</span>
-                <span className="text-sm text-gray-300">{new Date(image.timestamp).toLocaleString('ja-JP')}</span>
+                <span className="text-sm text-foreground-secondary">作成日時</span>
+                <span className="text-sm text-foreground">{new Date(image.timestamp).toLocaleString('ja-JP')}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400">ステータス</span>
-                <span className={`text-sm font-medium ${
-                  image.status === 'completed' ? 'text-green-400' : 
-                  image.status === 'in-progress' ? 'text-blue-400' : 
-                  image.status === 'failed' ? 'text-red-400' : 'text-gray-400'
+                <span className="text-sm text-foreground-secondary">ステータス</span>
+                <span className={`text-sm font-medium px-2 py-1 rounded-lg ${
+                  image.status === 'completed' ? 'text-green-400 bg-green-400/10' : 
+                  image.status === 'in-progress' ? 'text-blue-400 bg-blue-400/10' : 
+                  image.status === 'failed' ? 'text-red-400 bg-red-400/10' : 'text-foreground-secondary bg-surface/30'
                 }`}>
                   {image.status === 'completed' ? '完了' : 
                    image.status === 'in-progress' ? '処理中' : 
@@ -219,23 +219,23 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
                 </span>
               </div>
               <div>
-                <span className="text-sm text-gray-400">プロンプト</span>
-                <p className="text-sm text-gray-300 mt-1 p-2 bg-gray-800 rounded">{image.prompt}</p>
+                <span className="text-sm text-foreground-secondary">プロンプト</span>
+                <p className="text-sm text-foreground mt-2 p-3 bg-surface/30 rounded-xl border border-surface/20">{image.prompt}</p>
               </div>
             </div>
           </div>
 
           {/* Right Side - Actions */}
-          <div className="w-80 p-6 border-l border-gray-700 overflow-y-auto">
+          <div className="w-80 p-6 border-l border-surface/30 overflow-y-auto">
             <div className="space-y-6">
               {/* Quadrant Selection */}
               {selectedQuadrant && (
-                <div className="bg-purple-900/30 p-3 rounded-lg">
-                  <h3 className="text-sm font-semibold text-purple-300 mb-1">選択中</h3>
-                  <p className="text-xs text-gray-300">象限 {selectedQuadrant} を選択しています</p>
+                <div className="bg-primary-accent/20 p-4 rounded-xl border border-primary-accent/30">
+                  <h3 className="text-sm font-semibold text-primary-accent mb-1">選択中</h3>
+                  <p className="text-xs text-foreground-secondary">象限 {selectedQuadrant} を選択しています</p>
                   <button
                     onClick={() => setSelectedQuadrant(null)}
-                    className="text-xs text-gray-400 hover:text-white mt-1"
+                    className="text-xs text-foreground-secondary hover:text-foreground mt-2 transition-colors"
                   >
                     選択解除
                   </button>
@@ -244,14 +244,14 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
               
               {/* Quick Actions */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-3">クイック操作</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">クイック操作</h3>
                 <div className="space-y-2">
                   <button
                     onClick={() => toggleFavorite(image.id)}
-                    className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                       isFavorite 
-                        ? 'bg-red-600 hover:bg-red-700 text-white' 
-                        : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                        ? 'bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30' 
+                        : 'bg-surface/50 hover:bg-surface/70 text-foreground-secondary border border-surface/30'
                     }`}
                   >
                     <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
@@ -260,7 +260,7 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
                   
                   <button
                     onClick={handleDownload}
-                    className="w-full flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors"
+                    className="w-full flex items-center space-x-3 px-4 py-3 bg-surface/50 hover:bg-surface/70 text-foreground-secondary rounded-xl transition-all duration-200 border border-surface/30"
                   >
                     <Download className="w-4 h-4" />
                     <span>ダウンロード</span>
@@ -268,7 +268,7 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
                   
                   <button
                     onClick={handleShare}
-                    className="w-full flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors"
+                    className="w-full flex items-center space-x-3 px-4 py-3 bg-surface/50 hover:bg-surface/70 text-foreground-secondary rounded-xl transition-all duration-200 border border-surface/30"
                   >
                     <Share2 className="w-4 h-4" />
                     <span>共有</span>
@@ -279,46 +279,46 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
               {/* Generation Actions */}
               {image.status === 'completed' && (
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-3">生成操作</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-4">生成操作</h3>
                   <div className="space-y-2">
                     <button
                       onClick={() => handleAction('regenerate')}
                       disabled={isLoading}
-                      className="w-full flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                      className="w-full flex items-center space-x-3 px-4 py-3 bg-primary-accent/20 hover:bg-primary-accent/30 text-primary-accent rounded-xl transition-all duration-200 disabled:opacity-50 border border-primary-accent/30"
                     >
                       <Repeat className="w-4 h-4" />
                       <span>再生成</span>
-                      {isLoading && selectedAction === 'regenerate' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white ml-auto"></div>}
+                      {isLoading && selectedAction === 'regenerate' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-accent ml-auto"></div>}
                     </button>
                     
                     <button
                       onClick={() => handleAction('vary')}
                       disabled={isLoading}
-                      className="w-full flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                      className="w-full flex items-center space-x-3 px-4 py-3 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-xl transition-all duration-200 disabled:opacity-50 border border-blue-500/30"
                     >
                       <Sparkles className="w-4 h-4" />
                       <span>バリエーション</span>
-                      {isLoading && selectedAction === 'vary' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white ml-auto"></div>}
+                      {isLoading && selectedAction === 'vary' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400 ml-auto"></div>}
                     </button>
                     
                     <button
                       onClick={() => handleAction('remix')}
                       disabled={isLoading}
-                      className="w-full flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                      className="w-full flex items-center space-x-3 px-4 py-3 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-xl transition-all duration-200 disabled:opacity-50 border border-green-500/30"
                     >
                       <Palette className="w-4 h-4" />
                       <span>リミックス</span>
-                      {isLoading && selectedAction === 'remix' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white ml-auto"></div>}
+                      {isLoading && selectedAction === 'remix' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-400 ml-auto"></div>}
                     </button>
                     
                     <button
                       onClick={() => handleAction('upscale')}
                       disabled={isLoading}
-                      className="w-full flex items-center space-x-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                      className="w-full flex items-center space-x-3 px-4 py-3 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 rounded-xl transition-all duration-200 disabled:opacity-50 border border-yellow-500/30"
                     >
                       <Zap className="w-4 h-4" />
                       <span>アップスケール</span>
-                      {isLoading && selectedAction === 'upscale' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white ml-auto"></div>}
+                      {isLoading && selectedAction === 'upscale' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400 ml-auto"></div>}
                     </button>
                   </div>
                 </div>
@@ -327,9 +327,9 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
               {/* Style Actions */}
               {image.status === 'completed' && (
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-3">スタイル調整</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-4">スタイル調整</h3>
                   {!selectedQuadrant && (
-                    <p className="text-sm text-gray-400 mb-3">
+                    <p className="text-sm text-foreground-secondary mb-4 p-3 bg-surface/20 rounded-xl border border-surface/20">
                       画像の象限を選択してからスタイル調整を行ってください
                     </p>
                   )}
@@ -337,46 +337,46 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
                     <button
                       onClick={() => handleAction('subtle')}
                       disabled={isLoading || !selectedQuadrant}
-                      className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors border ${
+                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 border ${
                         selectedQuadrant 
-                          ? 'bg-gray-700 hover:bg-gray-600 text-white border-gray-600' 
-                          : 'bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed'
+                          ? 'bg-surface/50 hover:bg-surface/70 text-foreground border-surface/30' 
+                          : 'bg-surface/20 text-foreground-secondary border-surface/20 cursor-not-allowed'
                       } disabled:opacity-50`}
                     >
                       <span>📝</span>
                       <span>Subtle</span>
-                      {selectedQuadrant && <span className="text-xs text-gray-400">({selectedQuadrant})</span>}
-                      {isLoading && selectedAction === 'subtle' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white ml-auto"></div>}
+                      {selectedQuadrant && <span className="text-xs text-foreground-secondary">({selectedQuadrant})</span>}
+                      {isLoading && selectedAction === 'subtle' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-foreground ml-auto"></div>}
                     </button>
                     
                     <button
                       onClick={() => handleAction('strong')}
                       disabled={isLoading || !selectedQuadrant}
-                      className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors border ${
+                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 border ${
                         selectedQuadrant 
-                          ? 'bg-gray-700 hover:bg-gray-600 text-white border-gray-600' 
-                          : 'bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed'
+                          ? 'bg-surface/50 hover:bg-surface/70 text-foreground border-surface/30' 
+                          : 'bg-surface/20 text-foreground-secondary border-surface/20 cursor-not-allowed'
                       } disabled:opacity-50`}
                     >
                       <span>💪</span>
                       <span>Strong</span>
-                      {selectedQuadrant && <span className="text-xs text-gray-400">({selectedQuadrant})</span>}
-                      {isLoading && selectedAction === 'strong' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white ml-auto"></div>}
+                      {selectedQuadrant && <span className="text-xs text-foreground-secondary">({selectedQuadrant})</span>}
+                      {isLoading && selectedAction === 'strong' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-foreground ml-auto"></div>}
                     </button>
                     
                     <button
                       onClick={() => handleAction('animate')}
                       disabled={isLoading || !selectedQuadrant}
-                      className={`w-full flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 border ${
                         selectedQuadrant 
-                          ? 'bg-orange-600 hover:bg-orange-700 text-white' 
-                          : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                          ? 'bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border-orange-500/30' 
+                          : 'bg-surface/20 text-foreground-secondary border-surface/20 cursor-not-allowed'
                       } disabled:opacity-50`}
                     >
                       <Video className="w-4 h-4" />
                       <span>動画生成</span>
-                      {selectedQuadrant && <span className="text-xs text-gray-400">({selectedQuadrant})</span>}
-                      {isLoading && selectedAction === 'animate' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white ml-auto"></div>}
+                      {selectedQuadrant && <span className="text-xs text-foreground-secondary">({selectedQuadrant})</span>}
+                      {isLoading && selectedAction === 'animate' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-400 ml-auto"></div>}
                     </button>
                   </div>
                 </div>
@@ -384,36 +384,36 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
 
               {/* Design Options */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-3">デザイン設定</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">デザイン設定</h3>
                 <div className="space-y-2">
                   {image.designOptions.trend && (
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">トレンド</span>
-                      <span className="text-sm text-purple-300 bg-purple-900/30 px-2 py-1 rounded">
+                      <span className="text-sm text-foreground-secondary">トレンド</span>
+                      <span className="text-sm text-primary-accent bg-primary-accent/20 px-3 py-1 rounded-lg border border-primary-accent/30">
                         {image.designOptions.trend}
                       </span>
                     </div>
                   )}
                   {image.designOptions.colorScheme && (
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">カラー</span>
-                      <span className="text-sm text-pink-300 bg-pink-900/30 px-2 py-1 rounded">
+                      <span className="text-sm text-foreground-secondary">カラー</span>
+                      <span className="text-sm text-pink-400 bg-pink-500/20 px-3 py-1 rounded-lg border border-pink-500/30">
                         {image.designOptions.colorScheme}
                       </span>
                     </div>
                   )}
                   {image.designOptions.mood && (
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">ムード</span>
-                      <span className="text-sm text-blue-300 bg-blue-900/30 px-2 py-1 rounded">
+                      <span className="text-sm text-foreground-secondary">ムード</span>
+                      <span className="text-sm text-blue-400 bg-blue-500/20 px-3 py-1 rounded-lg border border-blue-500/30">
                         {image.designOptions.mood}
                       </span>
                     </div>
                   )}
                   {image.designOptions.season && (
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">シーズン</span>
-                      <span className="text-sm text-green-300 bg-green-900/30 px-2 py-1 rounded">
+                      <span className="text-sm text-foreground-secondary">シーズン</span>
+                      <span className="text-sm text-green-400 bg-green-500/20 px-3 py-1 rounded-lg border border-green-500/30">
                         {image.designOptions.season}
                       </span>
                     </div>
@@ -423,7 +423,7 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
 
               {/* Danger Zone */}
               <div>
-                <h3 className="text-lg font-semibold text-red-400 mb-3">削除</h3>
+                <h3 className="text-lg font-semibold text-red-400 mb-4">削除</h3>
                 <button
                   onClick={() => {
                     if (confirm('この画像を削除しますか？')) {
@@ -431,7 +431,7 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
                       onClose();
                     }
                   }}
-                  className="w-full flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                  className="w-full flex items-center space-x-3 px-4 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl transition-all duration-200 border border-red-500/30"
                 >
                   <X className="w-4 h-4" />
                   <span>画像を削除</span>

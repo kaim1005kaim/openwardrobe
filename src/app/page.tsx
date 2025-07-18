@@ -39,6 +39,44 @@ export default function HomePage() {
     }
   }, [mounted]);
 
+  // Real-time polling for pending images
+  useEffect(() => {
+    if (!mounted) return;
+
+    const pendingImages = images.filter(img => img.status === 'pending' || img.status === 'in-progress');
+    
+    if (pendingImages.length === 0) return;
+
+    const pollInterval = setInterval(async () => {
+      console.log('🔄 Polling for pending images updates...');
+      await syncImagesFromAPI();
+    }, 3000); // Poll every 3 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [mounted, images]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Global ESC to close modal
+      if (e.key === 'Escape' && selectedImage) {
+        setSelectedImage(null);
+      }
+      // Global shortcuts (⌘+K for focus prompt, etc.)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        // Focus prompt bar if available
+        const promptInput = document.querySelector('textarea[placeholder=""]') as HTMLTextAreaElement;
+        if (promptInput) {
+          promptInput.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedImage]);
+
   // Auto-sync function
   const syncImagesFromAPI = async () => {
     console.log('🔄 Auto-syncing images from API...');
@@ -49,27 +87,40 @@ export default function HomePage() {
       if (data.tests?.authTest?.recentImages) {
         console.log('📊 Found', data.tests.authTest.recentImages.length, 'recent images');
         
-        // Add recent images to store (avoid duplicates)
+        // Add recent images to store (avoid duplicates and update existing)
         data.tests.authTest.recentImages.forEach((img: any) => {
-          if (img.status === 'completed' && img.url) {
-            const existingImage = images.find(existing => existing.id === img.id);
-            if (!existingImage) {
+          const existingImage = images.find(existing => existing.id === img.id);
+          
+          if (existingImage) {
+            // Update existing image if status changed
+            if (existingImage.status !== img.status && img.status === 'completed' && img.url) {
+              console.log('🔄 Updating image status:', img.id, 'to completed');
               addImage({
-                id: img.id,
-                prompt: img.prompt || 'From API',
+                ...existingImage,
                 status: img.status,
                 imageUrl: img.url,
                 upscaled_urls: img.upscaled_urls,
-                progress: img.progress,
-                timestamp: new Date(),
-                designOptions: {
-                  trend: null,
-                  colorScheme: null,
-                  mood: null,
-                  season: 'spring'
-                }
+                progress: img.progress || 100
               });
             }
+          } else if (img.url) {
+            // Add new image (completed or in-progress)
+            console.log('➕ Adding new image:', img.id, 'status:', img.status);
+            addImage({
+              id: img.id,
+              prompt: img.prompt || 'From API',
+              status: img.status,
+              imageUrl: img.url,
+              upscaled_urls: img.upscaled_urls,
+              progress: img.progress,
+              timestamp: new Date(),
+              designOptions: {
+                trend: null,
+                colorScheme: null,
+                mood: null,
+                season: 'spring'
+              }
+            });
           }
         });
       }

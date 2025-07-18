@@ -29,6 +29,10 @@ export function PromptBar({ onSubmit, onToggleDrawer, isGenerating }: PromptBarP
         handleSubmit();
       }
     }
+    // ESC to unfocus
+    if (e.key === 'Escape') {
+      inputRef.current?.blur();
+    }
   };
 
   return (
@@ -74,8 +78,8 @@ export function PromptBar({ onSubmit, onToggleDrawer, isGenerating }: PromptBarP
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
                 onKeyDown={handleKeyDown}
-                placeholder="エレガントなドレス、ミニマルスタイル、春の装い..."
-                className="w-full bg-transparent text-foreground placeholder-foreground-secondary resize-none border-none outline-none text-body leading-relaxed min-h-[60px] max-h-[120px] py-4"
+                placeholder=""
+                className="w-full bg-transparent text-foreground placeholder-transparent resize-none border-none outline-none text-body leading-relaxed min-h-[60px] max-h-[120px] py-4"
                 rows={1}
                 style={{ 
                   fontFamily: 'Inter, system-ui, sans-serif',

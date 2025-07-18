@@ -18,12 +18,14 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
   const [isLoading, setIsLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Masonry breakpoints
+  // Grid layout breakpoints (horizontal layout instead of masonry)
   const breakpointColumnsObj = {
-    default: 4,
-    1536: 3,
-    1024: 2,
-    768: 1
+    default: 6,
+    1536: 5,
+    1280: 4,
+    1024: 3,
+    768: 2,
+    640: 1
   };
 
   // Initialize visible images
@@ -90,11 +92,8 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
         ref={containerRef}
         className="px-8 pt-8 pb-32" // Bottom padding to account for fixed prompt bar
       >
-        <Masonry
-          breakpointCols={breakpointColumnsObj}
-          className="flex w-auto -ml-6"
-          columnClassName="pl-6 bg-clip-padding"
-        >
+        {/* Grid Layout */}
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
           <AnimatePresence mode="popLayout">
             {visibleImages.map((image, index) => (
               <motion.div
@@ -104,10 +103,10 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ 
                   duration: 0.25,
-                  delay: index * 0.05,
+                  delay: index * 0.02,
                   ease: [0.22, 1, 0.36, 1]
                 }}
-                className="mb-6"
+                className="w-full"
               >
                 <ImageCard
                   image={image}
@@ -118,7 +117,7 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
               </motion.div>
             ))}
           </AnimatePresence>
-        </Masonry>
+        </div>
 
         {/* Loading indicator */}
         <AnimatePresence>
