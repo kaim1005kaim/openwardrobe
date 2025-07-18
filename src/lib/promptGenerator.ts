@@ -114,8 +114,8 @@ export class PromptGenerator {
       prompt += ` ${settings.aspectRatio}`;
     }
     
-    // Add quality suffix
-    prompt += ' --v 6.1 --style raw';
+    // Add quality suffix and no-text parameters
+    prompt += ' --v 6.1 --style raw --no text, words, letters, typography, signs, labels';
     
     return prompt;
   }
@@ -197,7 +197,7 @@ export class PromptGenerator {
     
     const basePrompt = `Fashion photography, ${elements.join(', ')}, professional lighting, high quality, detailed, modern style`;
     
-    return basePrompt + ' --ar 3:4 --v 6.1 --style raw';
+    return basePrompt + ' --ar 3:4 --v 6.1 --style raw --no text, words, letters, typography, signs, labels';
   }
 
   /**
@@ -220,6 +220,11 @@ export class PromptGenerator {
       modifiedPrompt = `${selectedColors.join(', ')}, ${modifiedPrompt}`;
     }
     
+    // Ensure no-text parameters are maintained
+    if (!modifiedPrompt.includes('--no')) {
+      modifiedPrompt += ' --no text, words, letters, typography, signs, labels';
+    }
+    
     return modifiedPrompt.replace(/,\s*,/g, ',').trim();
   }
 
@@ -238,6 +243,11 @@ export class PromptGenerator {
     if (newMoodElements) {
       const selectedMoods = this.selectRandomElements(newMoodElements, 1);
       modifiedPrompt = `${selectedMoods.join(', ')}, ${modifiedPrompt}`;
+    }
+    
+    // Ensure no-text parameters are maintained
+    if (!modifiedPrompt.includes('--no')) {
+      modifiedPrompt += ' --no text, words, letters, typography, signs, labels';
     }
     
     return modifiedPrompt.replace(/,\s*,/g, ',').trim();

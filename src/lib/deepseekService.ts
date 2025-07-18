@@ -74,6 +74,12 @@ Key responsibilities:
 4. Add technical photography and styling details
 5. Ensure prompts generate commercially appealing designs
 
+CRITICAL RULES:
+- NEVER include text, words, letters, numbers, or typography in the prompt
+- NEVER mention signs, labels, logos, or written elements
+- Focus ONLY on visual fashion elements, materials, colors, and photography techniques
+- Add "--no text, words, letters, typography, signs, labels" at the end of every prompt
+
 Output format: Return ONLY the enhanced Midjourney prompt in English, optimized for fashion photography.
 Include camera angles, lighting, fabric details, and artistic style descriptors.`;
 
@@ -88,7 +94,20 @@ Create an enhanced Midjourney prompt for fashion design.`;
       { role: 'user', content: userMessage }
     ];
 
-    return await this.chat(messages, 0.8, 500);
+    const enhancedPrompt = await this.chat(messages, 0.8, 500);
+    
+    // Ensure no text parameters and add Midjourney no-text parameters
+    const cleanedPrompt = enhancedPrompt
+      .replace(/\b(text|words?|letters?|typography|signs?|labels?)\b/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    // Add no-text parameters if not already present
+    if (!cleanedPrompt.includes('--no')) {
+      return `${cleanedPrompt} --no text, words, letters, typography, signs, labels`;
+    }
+    
+    return cleanedPrompt;
   }
 
   /**
@@ -126,7 +145,12 @@ Format: ["trend1", "trend2", ...]`;
   ): Promise<string> {
     const systemPrompt = `You are helping refine a Midjourney fashion design prompt based on user feedback.
 Modify the prompt while maintaining its core concept and adding the requested changes.
-Keep the technical photography parameters intact.`;
+Keep the technical photography parameters intact.
+
+CRITICAL RULES:
+- NEVER include text, words, letters, numbers, or typography in the prompt
+- Maintain the "--no text" parameters at the end
+- Focus ONLY on visual fashion elements`;
 
     const userMessage = `Current prompt: "${currentPrompt}"
 User feedback: "${userFeedback}"
@@ -138,7 +162,14 @@ Provide the refined prompt.`;
       { role: 'user', content: userMessage }
     ];
 
-    return await this.chat(messages, 0.7, 500);
+    const refinedPrompt = await this.chat(messages, 0.7, 500);
+    
+    // Ensure no-text parameters are maintained
+    if (!refinedPrompt.includes('--no')) {
+      return `${refinedPrompt} --no text, words, letters, typography, signs, labels`;
+    }
+    
+    return refinedPrompt;
   }
 
   /**

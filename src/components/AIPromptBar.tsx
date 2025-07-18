@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal, Send, Sparkles, Wand2, TrendingUp, MessageSquare, Loader2 } from 'lucide-react';
 import { TrendCache } from '@/lib/trendCache';
+import { PromptCleaner } from '@/lib/promptCleaner';
 import { useImageStore } from '@/store/imageStore';
 
 interface AIPromptBarProps {
@@ -108,11 +109,15 @@ export function AIPromptBar({ onSubmit, onToggleDrawer, isGenerating }: AIPrompt
 
       if (response.ok) {
         const data = await response.json();
-        setAiPrompt(data.result);
+        // Clean the AI-enhanced prompt to remove text elements
+        const cleanedPrompt = PromptCleaner.cleanPrompt(data.result);
+        setAiPrompt(cleanedPrompt);
       }
     } catch (error) {
       console.error('Failed to enhance prompt:', error);
-      setAiPrompt(prompt); // Fallback to original
+      // Clean the fallback prompt too
+      const cleanedFallback = PromptCleaner.cleanPrompt(prompt);
+      setAiPrompt(cleanedFallback);
     } finally {
       setIsEnhancing(false);
     }
@@ -162,7 +167,9 @@ export function AIPromptBar({ onSubmit, onToggleDrawer, isGenerating }: AIPrompt
 
       if (response.ok) {
         const data = await response.json();
-        setAiPrompt(data.result);
+        // Clean the refined prompt to remove text elements
+        const cleanedPrompt = PromptCleaner.cleanPrompt(data.result);
+        setAiPrompt(cleanedPrompt);
       }
     } catch (error) {
       console.error('Failed to refine prompt:', error);
