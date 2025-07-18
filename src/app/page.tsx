@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useImageStore } from '@/store/imageStore';
 import { ImageService } from '@/lib/imageService';
 import { PromptGenerator } from '@/lib/promptGenerator';
+import { PresetGenerator, PresetDesign } from '@/lib/presetGenerator';
 import { AIPromptBar } from '@/components/AIPromptBar';
 import { ImageFeed } from '@/components/ImageFeed';
 import { ControlDrawer } from '@/components/ControlDrawer';
@@ -175,6 +176,62 @@ export default function HomePage() {
     }
   };
 
+  // Handle generation from settings
+  const handleGenerateFromSettings = async () => {
+    if (isGenerating) {
+      console.warn('⚠️ Already generating, skipping duplicate request');
+      return;
+    }
+
+    try {
+      console.log('🎨 Generating from settings:', currentDesignOptions);
+      
+      // Generate prompt from current design options
+      const generatedPrompt = await PresetGenerator.generateFromPartialOptions(
+        currentDesignOptions,
+        '現在の設定に基づいたファッションデザイン'
+      );
+
+      // Submit the generated prompt
+      await handlePromptSubmit(generatedPrompt);
+      
+      // Close drawer after generation
+      setIsDrawerOpen(false);
+      
+    } catch (error) {
+      console.error('❌ Settings generation failed:', error);
+      alert('設定からの生成に失敗しました。再度お試しください。');
+    }
+  };
+
+  // Handle generation from preset
+  const handleGenerateFromPreset = async (preset: PresetDesign) => {
+    if (isGenerating) {
+      console.warn('⚠️ Already generating, skipping duplicate request');
+      return;
+    }
+
+    try {
+      console.log('🎨 Generating from preset:', preset.name);
+      
+      // Update design options with preset
+      setDesignOptions(preset.options);
+      
+      // Generate prompt from preset
+      const generatedPrompt = await PresetGenerator.generateFromPreset(preset.id);
+
+      // Submit the generated prompt
+      await handlePromptSubmit(generatedPrompt);
+      
+      // Close drawer after generation
+      setIsDrawerOpen(false);
+      
+    } catch (error) {
+      console.error('❌ Preset generation failed:', error);
+      alert('プリセットからの生成に失敗しました。再度お試しください。');
+    }
+  };
+
   // Close modal
   const handleCloseModal = () => {
     setSelectedImage(null);
@@ -258,6 +315,9 @@ export default function HomePage() {
         onClose={() => setIsDrawerOpen(false)}
         designOptions={currentDesignOptions}
         onDesignOptionsChange={setDesignOptions}
+        onGenerateFromSettings={handleGenerateFromSettings}
+        onGenerateFromPreset={handleGenerateFromPreset}
+        isGenerating={isGenerating}
       />
 
       {/* Image Modal */}

@@ -1,27 +1,58 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Palette, Sparkles, Calendar, Shirt } from 'lucide-react';
+import { X, Palette, Sparkles, Calendar, Shirt, Wand2, Shuffle } from 'lucide-react';
 import { DesignOptions } from '@/lib/types';
+import { PresetCards } from './PresetCards';
+import { PresetDesign, PresetGenerator } from '@/lib/presetGenerator';
 
 interface ControlDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   designOptions: DesignOptions;
   onDesignOptionsChange: (options: DesignOptions) => void;
+  onGenerateFromSettings: () => void;
+  onGenerateFromPreset: (preset: PresetDesign) => void;
+  isGenerating: boolean;
 }
 
 export function ControlDrawer({ 
   isOpen, 
   onClose, 
   designOptions, 
-  onDesignOptionsChange 
+  onDesignOptionsChange,
+  onGenerateFromSettings,
+  onGenerateFromPreset,
+  isGenerating
 }: ControlDrawerProps) {
   const handleOptionChange = (key: keyof DesignOptions, value: any) => {
     onDesignOptionsChange({
       ...designOptions,
       [key]: value
     });
+  };
+
+  const handleRandomize = () => {
+    const randomTrend = trendOptions[Math.floor(Math.random() * trendOptions.length)];
+    const randomColor = colorOptions[Math.floor(Math.random() * colorOptions.length)];
+    const randomMood = moodOptions[Math.floor(Math.random() * moodOptions.length)];
+    const randomSeason = seasonOptions[Math.floor(Math.random() * seasonOptions.length)];
+
+    onDesignOptionsChange({
+      trend: randomTrend.id as any,
+      colorScheme: randomColor.id as any,
+      mood: randomMood.id as any,
+      season: randomSeason.id as any
+    });
+  };
+
+  const getSelectionCount = () => {
+    let count = 0;
+    if (designOptions.trend) count++;
+    if (designOptions.colorScheme) count++;
+    if (designOptions.mood) count++;
+    if (designOptions.season) count++;
+    return count;
   };
 
   const trendOptions = [
@@ -96,6 +127,63 @@ export function ControlDrawer({
                 >
                   <X className="w-5 h-5 text-foreground-secondary" />
                 </button>
+              </div>
+
+              {/* Preset Generation */}
+              <div className="p-6 bg-glass-surface rounded-2xl border border-surface/30">
+                <PresetCards
+                  onPresetSelect={onGenerateFromPreset}
+                  isGenerating={isGenerating}
+                />
+              </div>
+
+              {/* Quick Generation */}
+              <div className="space-y-4 p-6 bg-glass-surface rounded-2xl border border-surface/30">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-body font-semibold text-foreground mb-1">
+                      クイック生成
+                    </h3>
+                    <p className="text-caption text-foreground-secondary">
+                      選択した設定でそのまま生成
+                    </p>
+                  </div>
+                  <div className="text-sm text-foreground-secondary">
+                    {getSelectionCount()}/4 選択済み
+                  </div>
+                </div>
+
+                <div className="flex space-x-3">
+                  <motion.button
+                    onClick={onGenerateFromSettings}
+                    disabled={isGenerating || getSelectionCount() === 0}
+                    className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-xl transition-all duration-200 ${
+                      getSelectionCount() > 0 && !isGenerating
+                        ? 'bg-primary-accent hover:bg-primary-accent/90 text-white shadow-lg shadow-primary-accent/30'
+                        : 'bg-surface/50 text-foreground-secondary cursor-not-allowed'
+                    }`}
+                    whileHover={getSelectionCount() > 0 && !isGenerating ? { scale: 1.02 } : {}}
+                    whileTap={getSelectionCount() > 0 && !isGenerating ? { scale: 0.98 } : {}}
+                  >
+                    <Wand2 className="w-4 h-4" />
+                    <span>{isGenerating ? '生成中...' : '今すぐ生成'}</span>
+                  </motion.button>
+
+                  <motion.button
+                    onClick={handleRandomize}
+                    className="px-4 py-3 bg-surface/50 hover:bg-surface/70 text-foreground-secondary rounded-xl transition-all duration-200"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Shuffle className="w-4 h-4" />
+                  </motion.button>
+                </div>
+
+                {getSelectionCount() === 0 && (
+                  <div className="text-xs text-foreground-secondary text-center py-2">
+                    下の設定から1つ以上選択してください
+                  </div>
+                )}
               </div>
 
               {/* Content */}
