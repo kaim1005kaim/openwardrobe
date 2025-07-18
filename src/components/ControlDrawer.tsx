@@ -132,7 +132,6 @@ export function ControlDrawer({
 
             {/* Content - Scrollable */}
             <div className="flex-1 overflow-y-auto p-8 space-y-8">
-
               {/* Preset Generation */}
               <div className="p-6 bg-glass-surface rounded-2xl border border-surface/30" data-tutorial="preset-cards">
                 <PresetCards
@@ -190,112 +189,111 @@ export function ControlDrawer({
                 )}
               </div>
 
-                {/* Trends */}
-                <div>
-                  <div className="flex items-center space-x-2 mb-4">
-                    <Sparkles className="w-5 h-5 text-primary-accent" />
-                    <h3 className="text-body font-medium text-foreground">トレンド</h3>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {trendOptions.map((option) => (
-                      <motion.button
-                        key={option.id}
-                        onClick={() => handleOptionChange('trend', option.id)}
-                        className={`p-4 rounded-xl border text-left transition-all ${
-                          designOptions.trend === option.id
-                            ? 'border-primary-accent bg-primary-accent/10 text-primary-accent'
-                            : 'border-surface/50 hover:border-surface text-foreground-secondary hover:text-foreground'
-                        }`}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <div className="text-lg mb-1">{option.icon}</div>
-                        <div className="text-caption font-medium">{option.label}</div>
-                      </motion.button>
-                    ))}
-                  </div>
+              {/* Trends */}
+              <div>
+                <div className="flex items-center space-x-2 mb-4">
+                  <Sparkles className="w-5 h-5 text-primary-accent" />
+                  <h3 className="text-body font-medium text-foreground">トレンド</h3>
                 </div>
-
-                {/* Colors */}
-                <div>
-                  <div className="flex items-center space-x-2 mb-4">
-                    <Palette className="w-5 h-5 text-primary-accent" />
-                    <h3 className="text-body font-medium text-foreground">カラー</h3>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {colorOptions.map((option) => (
-                      <motion.button
-                        key={option.id}
-                        onClick={() => handleOptionChange('colorScheme', option.id)}
-                        className={`p-4 rounded-xl border text-left transition-all ${
-                          designOptions.colorScheme === option.id
-                            ? 'border-primary-accent bg-primary-accent/10 text-primary-accent'
-                            : 'border-surface/50 hover:border-surface text-foreground-secondary hover:text-foreground'
-                        }`}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <div className="flex items-center space-x-2 mb-1">
-                          <div 
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: option.color }}
-                          />
-                          <div className="text-caption font-medium">{option.label}</div>
-                        </div>
-                      </motion.button>
-                    ))}
-                  </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {trendOptions.map((option) => (
+                    <motion.button
+                      key={option.id}
+                      onClick={() => handleOptionChange('trend', option.id)}
+                      className={`p-4 rounded-xl border text-left transition-all ${
+                        designOptions.trend === option.id
+                          ? 'border-primary-accent bg-primary-accent/10 text-primary-accent'
+                          : 'border-surface/50 hover:border-surface text-foreground-secondary hover:text-foreground'
+                      }`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="text-lg mb-1">{option.icon}</div>
+                      <div className="text-caption font-medium">{option.label}</div>
+                    </motion.button>
+                  ))}
                 </div>
+              </div>
 
-                {/* Mood */}
-                <div>
-                  <div className="flex items-center space-x-2 mb-4">
-                    <Shirt className="w-5 h-5 text-primary-accent" />
-                    <h3 className="text-body font-medium text-foreground">ムード</h3>
-                  </div>
-                  <div className="grid grid-cols-1 gap-2">
-                    {moodOptions.map((option) => (
-                      <motion.button
-                        key={option.id}
-                        onClick={() => handleOptionChange('mood', option.id)}
-                        className={`p-3 rounded-xl border text-left transition-all ${
-                          designOptions.mood === option.id
-                            ? 'border-primary-accent bg-primary-accent/10 text-primary-accent'
-                            : 'border-surface/50 hover:border-surface text-foreground-secondary hover:text-foreground'
-                        }`}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <div className="text-caption font-medium">{option.label}</div>
-                      </motion.button>
-                    ))}
-                  </div>
+              {/* Colors */}
+              <div>
+                <div className="flex items-center space-x-2 mb-4">
+                  <Palette className="w-5 h-5 text-primary-accent" />
+                  <h3 className="text-body font-medium text-foreground">カラー</h3>
                 </div>
-
-                {/* Season */}
-                <div>
-                  <div className="flex items-center space-x-2 mb-4">
-                    <Calendar className="w-5 h-5 text-primary-accent" />
-                    <h3 className="text-body font-medium text-foreground">シーズン</h3>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {seasonOptions.map((option) => (
-                      <motion.button
-                        key={option.id}
-                        onClick={() => handleOptionChange('season', option.id)}
-                        className={`p-4 rounded-xl border text-left transition-all ${
-                          designOptions.season === option.id
-                            ? 'border-primary-accent bg-primary-accent/10 text-primary-accent'
-                            : 'border-surface/50 hover:border-surface text-foreground-secondary hover:text-foreground'
-                        }`}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <div className="text-lg mb-1">{option.icon}</div>
+                <div className="grid grid-cols-2 gap-3">
+                  {colorOptions.map((option) => (
+                    <motion.button
+                      key={option.id}
+                      onClick={() => handleOptionChange('colorScheme', option.id)}
+                      className={`p-4 rounded-xl border text-left transition-all ${
+                        designOptions.colorScheme === option.id
+                          ? 'border-primary-accent bg-primary-accent/10 text-primary-accent'
+                          : 'border-surface/50 hover:border-surface text-foreground-secondary hover:text-foreground'
+                      }`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="flex items-center space-x-2 mb-1">
+                        <div 
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: option.color }}
+                        />
                         <div className="text-caption font-medium">{option.label}</div>
-                      </motion.button>
-                    ))}
-                  </div>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mood */}
+              <div>
+                <div className="flex items-center space-x-2 mb-4">
+                  <Shirt className="w-5 h-5 text-primary-accent" />
+                  <h3 className="text-body font-medium text-foreground">ムード</h3>
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                  {moodOptions.map((option) => (
+                    <motion.button
+                      key={option.id}
+                      onClick={() => handleOptionChange('mood', option.id)}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        designOptions.mood === option.id
+                          ? 'border-primary-accent bg-primary-accent/10 text-primary-accent'
+                          : 'border-surface/50 hover:border-surface text-foreground-secondary hover:text-foreground'
+                      }`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="text-caption font-medium">{option.label}</div>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Season */}
+              <div>
+                <div className="flex items-center space-x-2 mb-4">
+                  <Calendar className="w-5 h-5 text-primary-accent" />
+                  <h3 className="text-body font-medium text-foreground">シーズン</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {seasonOptions.map((option) => (
+                    <motion.button
+                      key={option.id}
+                      onClick={() => handleOptionChange('season', option.id)}
+                      className={`p-4 rounded-xl border text-left transition-all ${
+                        designOptions.season === option.id
+                          ? 'border-primary-accent bg-primary-accent/10 text-primary-accent'
+                          : 'border-surface/50 hover:border-surface text-foreground-secondary hover:text-foreground'
+                      }`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="text-lg mb-1">{option.icon}</div>
+                      <div className="text-caption font-medium">{option.label}</div>
+                    </motion.button>
+                  ))}
                 </div>
               </div>
             </div>
