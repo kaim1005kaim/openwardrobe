@@ -118,13 +118,13 @@ export function TutorialOverlay({ isVisible, onClose, onOpenSettings }: Tutorial
 
   return (
     <div className="fixed inset-0 z-[9999]">
-      {/* Dark backdrop with spotlight cutout */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      {/* Dark backdrop without blur to keep highlighted elements visible */}
+      <div className="absolute inset-0 bg-black/40" />
       
       {/* Spotlight cutout area - make the highlighted element area brighter */}
       {spotlightPosition && (
         <>
-          {/* Create a "window" where the element can be seen clearly */}
+          {/* Create a clear "window" where the element can be seen without obstruction */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -136,14 +136,12 @@ export function TutorialOverlay({ isVisible, onClose, onOpenSettings }: Tutorial
               width: spotlightPosition.width + 30,
               height: spotlightPosition.height + 30,
               borderRadius: '16px',
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
-              backdropFilter: 'brightness(3) contrast(2) saturate(1.2)',
+              backgroundColor: 'transparent',
               border: '3px solid #7B61FF',
               boxShadow: `
                 0 0 0 2px rgba(255, 255, 255, 0.8),
                 0 0 30px #7B61FF,
-                0 0 60px rgba(123, 97, 255, 0.8),
-                inset 0 0 20px rgba(255, 255, 255, 0.05)
+                0 0 60px rgba(123, 97, 255, 0.8)
               `,
               zIndex: 10001
             }}
