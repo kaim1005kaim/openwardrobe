@@ -16,8 +16,8 @@ export class PresetGenerator {
   static presets: PresetDesign[] = [
     {
       id: 'minimalist-spring',
-      name: 'ミニマル春コレ',
-      description: 'シンプルで洗練された春のスタイル',
+      name: 'ミニマル春コレクション',
+      description: 'シンプルで洗練された、クリーンな春のエッセンス',
       emoji: '🌸',
       options: {
         trend: 'minimalist',
@@ -28,8 +28,8 @@ export class PresetGenerator {
     },
     {
       id: 'tech-urban',
-      name: 'アーバンテック',
-      description: '都市型機能美を追求したスタイル',
+      name: 'アーバンテックウェア',
+      description: '都市の機能美と未来的デザインの融合',
       emoji: '⚡',
       options: {
         trend: 'tech-wear',
@@ -41,7 +41,7 @@ export class PresetGenerator {
     {
       id: 'vintage-romantic',
       name: 'ヴィンテージロマンス',
-      description: 'ノスタルジックで女性らしいスタイル',
+      description: 'ノスタルジックで女性らしい、時を超えた美しさ',
       emoji: '🌹',
       options: {
         trend: 'vintage',
@@ -52,8 +52,8 @@ export class PresetGenerator {
     },
     {
       id: 'y2k-neon',
-      name: 'Y2Kネオン',
-      description: '未来的でエネルギッシュなスタイル',
+      name: 'Y2Kネオンファンタジー',
+      description: '未来的でエネルギッシュな、サイバーパンクスタイル',
       emoji: '✨',
       options: {
         trend: 'y2k',
@@ -65,7 +65,7 @@ export class PresetGenerator {
     {
       id: 'professional-modern',
       name: 'モダンプロフェッショナル',
-      description: 'ビジネスシーンに最適なスタイル',
+      description: 'ビジネスシーンに映える、洗練されたエレガンス',
       emoji: '💼',
       options: {
         trend: 'preppy',
@@ -77,7 +77,7 @@ export class PresetGenerator {
     {
       id: 'bohemian-summer',
       name: 'ボヘミアンサマー',
-      description: '自由で芸術的な夏のスタイル',
+      description: '自由で芸術的な、アーティスティック夏スタイル',
       emoji: '🌙',
       options: {
         trend: 'bohemian',

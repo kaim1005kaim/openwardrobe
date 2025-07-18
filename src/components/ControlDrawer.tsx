@@ -113,11 +113,11 @@ export function ControlDrawer({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -400, opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed left-0 top-0 h-full w-96 bg-surface/95 backdrop-blur-xl border-r border-surface/50 z-50 overflow-y-auto"
+            className="fixed left-0 top-0 h-full w-96 bg-surface/95 backdrop-blur-xl border-r border-surface/50 z-50 flex flex-col"
           >
-            <div className="p-8">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-8">
+            {/* Header */}
+            <div className="p-8 border-b border-surface/30">
+              <div className="flex items-center justify-between">
                 <h2 className="text-h2 font-semibold text-foreground">
                   デザイン設定
                 </h2>
@@ -128,6 +128,10 @@ export function ControlDrawer({
                   <X className="w-5 h-5 text-foreground-secondary" />
                 </button>
               </div>
+            </div>
+
+            {/* Content - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-8 space-y-8">
 
               {/* Preset Generation */}
               <div className="p-6 bg-glass-surface rounded-2xl border border-surface/30">
@@ -186,8 +190,6 @@ export function ControlDrawer({
                 )}
               </div>
 
-              {/* Content */}
-              <div className="space-y-8">
                 {/* Trends */}
                 <div>
                   <div className="flex items-center space-x-2 mb-4">
