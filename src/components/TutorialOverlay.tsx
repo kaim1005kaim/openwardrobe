@@ -305,16 +305,29 @@ function getPositionClasses(position: string, spotlightPosition: DOMRect | null)
   }
 
   const padding = 20;
+  const modalWidth = 384; // max-w-sm = 384px
+  const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
+  const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
 
   switch (position) {
     case 'top':
-      return `top-[${Math.max(spotlightPosition.top - 300, padding)}px] left-[${spotlightPosition.left + spotlightPosition.width / 2}px] transform -translate-x-1/2`;
+      return `top-[${Math.max(spotlightPosition.top - 300, padding)}px] left-[${Math.min(Math.max(spotlightPosition.left + spotlightPosition.width / 2, modalWidth / 2 + padding), windowWidth - modalWidth / 2 - padding)}px] transform -translate-x-1/2`;
     case 'bottom':
-      return `top-[${spotlightPosition.bottom + padding}px] left-[${spotlightPosition.left + spotlightPosition.width / 2}px] transform -translate-x-1/2`;
+      return `top-[${Math.min(spotlightPosition.bottom + padding, windowHeight - 400)}px] left-[${Math.min(Math.max(spotlightPosition.left + spotlightPosition.width / 2, modalWidth / 2 + padding), windowWidth - modalWidth / 2 - padding)}px] transform -translate-x-1/2`;
     case 'left':
-      return `top-[${spotlightPosition.top + spotlightPosition.height / 2}px] left-[${Math.max(spotlightPosition.left - 400, padding)}px] transform -translate-y-1/2`;
+      return `top-[${Math.min(Math.max(spotlightPosition.top + spotlightPosition.height / 2, 200), windowHeight - 200)}px] left-[${Math.max(spotlightPosition.left - modalWidth - padding, padding)}px] transform -translate-y-1/2`;
     case 'right':
-      return `top-[${spotlightPosition.top + spotlightPosition.height / 2}px] left-[${spotlightPosition.right + padding}px] transform -translate-y-1/2`;
+      // If there's not enough space on the right, show on the left instead
+      const rightPosition = spotlightPosition.right + padding;
+      const wouldOverflow = rightPosition + modalWidth > windowWidth - padding;
+      
+      if (wouldOverflow) {
+        // Show on left side instead
+        return `top-[${Math.min(Math.max(spotlightPosition.top + spotlightPosition.height / 2, 200), windowHeight - 200)}px] left-[${Math.max(spotlightPosition.left - modalWidth - padding, padding)}px] transform -translate-y-1/2`;
+      } else {
+        // Show on right side as intended
+        return `top-[${Math.min(Math.max(spotlightPosition.top + spotlightPosition.height / 2, 200), windowHeight - 200)}px] left-[${rightPosition}px] transform -translate-y-1/2`;
+      }
     default:
       return 'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2';
   }
