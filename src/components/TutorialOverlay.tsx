@@ -119,27 +119,46 @@ export function TutorialOverlay({ isVisible, onClose, onOpenSettings }: Tutorial
   return (
     <div className="fixed inset-0 z-[100]">
       {/* Backdrop with spotlight effect */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm">
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm">
         {spotlightPosition && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="absolute pointer-events-none"
-            style={{
-              left: spotlightPosition.left - 10,
-              top: spotlightPosition.top - 10,
-              width: spotlightPosition.width + 20,
-              height: spotlightPosition.height + 20,
-              background: 'radial-gradient(ellipse at center, transparent 0%, transparent 40%, rgba(0,0,0,0.8) 70%)',
-              borderRadius: '12px',
-              boxShadow: `
-                0 0 0 4px rgba(123, 97, 255, 0.3),
-                0 0 20px rgba(123, 97, 255, 0.6),
-                0 0 40px rgba(123, 97, 255, 0.4)
-              `
-            }}
-          />
+          <>
+            {/* Main spotlight cutout */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="absolute pointer-events-none"
+              style={{
+                left: spotlightPosition.left - 20,
+                top: spotlightPosition.top - 20,
+                width: spotlightPosition.width + 40,
+                height: spotlightPosition.height + 40,
+                background: 'radial-gradient(ellipse at center, transparent 0%, transparent 30%, rgba(0,0,0,0.9) 60%)',
+                borderRadius: '16px',
+                boxShadow: `
+                  inset 0 0 0 3px rgba(123, 97, 255, 0.8),
+                  0 0 0 2px rgba(123, 97, 255, 0.4),
+                  0 0 30px rgba(123, 97, 255, 0.8),
+                  0 0 60px rgba(123, 97, 255, 0.6)
+                `
+              }}
+            />
+            {/* Bright overlay for the highlighted element */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+              className="absolute pointer-events-none bg-white/10 backdrop-blur-[1px]"
+              style={{
+                left: spotlightPosition.left - 5,
+                top: spotlightPosition.top - 5,
+                width: spotlightPosition.width + 10,
+                height: spotlightPosition.height + 10,
+                borderRadius: '12px',
+                border: '2px solid rgba(123, 97, 255, 0.6)'
+              }}
+            />
+          </>
         )}
       </div>
 
