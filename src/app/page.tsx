@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useImageStore } from '@/store/imageStore';
 import { ImageService } from '@/lib/imageService';
@@ -26,6 +26,7 @@ export default function HomePage() {
   const [mounted, setMounted] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
+  const hasInitialized = useRef(false);
   
   // Prevent hydration mismatch by waiting for client-side mounting
   useEffect(() => {
@@ -34,7 +35,8 @@ export default function HomePage() {
   
   // Auto-sync images from API on startup
   useEffect(() => {
-    if (mounted) {
+    if (mounted && !hasInitialized.current) {
+      hasInitialized.current = true;
       syncImagesFromAPI();
     }
   }, [mounted]);
@@ -131,24 +133,20 @@ export default function HomePage() {
 
   // Handle prompt submission
   const handlePromptSubmit = async (prompt: string) => {
-    if (isGenerating) return;
+    if (isGenerating) {
+      console.warn('⚠️ Already generating, skipping duplicate request');
+      return;
+    }
     
     setGenerating(true);
     
     try {
-      // Generate enhanced prompt
-      const enhancedPrompt = `${prompt}, ${PromptGenerator.generatePrompt(currentDesignOptions, {
-        creativityLevel: 'balanced',
-        includeSeasonalConsistency: true,
-        includeColorHarmony: true,
-        cameraAngle: 'full-body',
-        aspectRatio: '9:16',
-        quality: 'high'
-      })}`;
+      // AIPromptBar already handles prompt enhancement, so we use the prompt as-is
+      console.log('🎨 Submitting prompt:', prompt);
       
       // Create image generation request
       const imageId = await ImageService.generateImage({
-        prompt: enhancedPrompt,
+        prompt: prompt,
         designOptions: currentDesignOptions,
         action: 'generate'
       });
@@ -156,7 +154,7 @@ export default function HomePage() {
       // Add to store immediately (optimistic update)
       const newImage: GeneratedImage = {
         id: imageId,
-        prompt: enhancedPrompt,
+        prompt: prompt,
         status: 'pending',
         progress: 0,
         timestamp: new Date(),
@@ -165,6 +163,9 @@ export default function HomePage() {
 
       addImage(newImage);
       console.log('✅ Image generation started:', imageId);
+      
+      // Small delay to prevent rapid successive calls
+      await new Promise(resolve => setTimeout(resolve, 100));
       
     } catch (error) {
       console.error('❌ Generation failed:', error);

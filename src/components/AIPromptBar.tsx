@@ -121,6 +121,12 @@ export function AIPromptBar({ onSubmit, onToggleDrawer, isGenerating }: AIPrompt
   const handleSubmit = () => {
     const finalPrompt = aiPrompt || prompt;
     if (finalPrompt.trim() && !isGenerating) {
+      // Prevent double submission
+      if (isGenerating) {
+        console.warn('⚠️ Already generating, preventing double submission');
+        return;
+      }
+      
       onSubmit(finalPrompt.trim());
       setPrompt('');
       setAiPrompt('');

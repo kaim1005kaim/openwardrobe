@@ -41,9 +41,22 @@ export const useImageStore = create<ImageStore>()(
       // Actions
       setDesignOptions: (options) => set({ currentDesignOptions: options }),
       
-      addImage: (image) => set((state) => ({
-        images: [image, ...state.images].slice(0, 100) // Keep only last 100 images
-      })),
+      addImage: (image) => set((state) => {
+        // Check if image already exists to prevent duplicates
+        const existingImage = state.images.find(img => img.id === image.id);
+        if (existingImage) {
+          // Update existing image instead of adding duplicate
+          return {
+            images: state.images.map(img => 
+              img.id === image.id ? { ...img, ...image } : img
+            )
+          };
+        }
+        // Add new image
+        return {
+          images: [image, ...state.images].slice(0, 100) // Keep only last 100 images
+        };
+      }),
       
       updateImageStatus: (id, status) => set((state) => ({
         images: state.images.map(image => 
