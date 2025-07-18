@@ -6,6 +6,8 @@ import { useImageStore } from '@/store/imageStore';
 import { ImageService } from '@/lib/imageService';
 import { PromptGenerator } from '@/lib/promptGenerator';
 import { PresetGenerator, PresetDesign } from '@/lib/presetGenerator';
+import { TutorialManager } from '@/lib/tutorialSystem';
+import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { AIPromptBar } from '@/components/AIPromptBar';
 import { ImageFeed } from '@/components/ImageFeed';
 import { ControlDrawer } from '@/components/ControlDrawer';
@@ -27,11 +29,17 @@ export default function HomePage() {
   const [mounted, setMounted] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
   const hasInitialized = useRef(false);
   
   // Prevent hydration mismatch by waiting for client-side mounting
   useEffect(() => {
     setMounted(true);
+    
+    // Check if tutorial should be shown
+    if (!TutorialManager.isTutorialCompleted()) {
+      setShowTutorial(true);
+    }
   }, []);
   
   // Auto-sync images from API on startup
@@ -237,6 +245,29 @@ export default function HomePage() {
     setSelectedImage(null);
   };
 
+  // Tutorial handlers
+  const handleTutorialClose = () => {
+    setShowTutorial(false);
+  };
+
+  const handleTutorialOpenSettings = () => {
+    setIsDrawerOpen(true);
+  };
+
+  // Development helper to reset tutorial (only in development)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (process.env.NODE_ENV === 'development' && e.ctrlKey && e.shiftKey && e.key === 'T') {
+        TutorialManager.resetTutorial();
+        setShowTutorial(true);
+        console.log('Tutorial reset for development testing');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Get sorted images (most recent first)
   const sortedImages = [...images].sort((a, b) => 
     new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
@@ -293,7 +324,7 @@ export default function HomePage() {
       </motion.header>
 
       {/* Main Content */}
-      <main className="pt-24 relative z-10">
+      <main className="pt-24 relative z-10" data-tutorial="image-feed">
         <ImageFeed
           images={sortedImages}
           onImageClick={setSelectedImage}
@@ -303,11 +334,13 @@ export default function HomePage() {
       </main>
 
       {/* Fixed AI Prompt Bar */}
-      <AIPromptBar
-        onSubmit={handlePromptSubmit}
-        onToggleDrawer={() => setIsDrawerOpen(true)}
-        isGenerating={isGenerating}
-      />
+      <div data-tutorial="prompt-bar">
+        <AIPromptBar
+          onSubmit={handlePromptSubmit}
+          onToggleDrawer={() => setIsDrawerOpen(true)}
+          isGenerating={isGenerating}
+        />
+      </div>
 
       {/* Control Drawer */}
       <ControlDrawer
@@ -330,6 +363,13 @@ export default function HomePage() {
           />
         )}
       </AnimatePresence>
+
+      {/* Tutorial Overlay */}
+      <TutorialOverlay
+        isVisible={showTutorial}
+        onClose={handleTutorialClose}
+        onOpenSettings={handleTutorialOpenSettings}
+      />
     </div>
   );
 }

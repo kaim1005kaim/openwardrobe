@@ -134,7 +134,7 @@ export function ControlDrawer({
             <div className="flex-1 overflow-y-auto p-8 space-y-8">
 
               {/* Preset Generation */}
-              <div className="p-6 bg-glass-surface rounded-2xl border border-surface/30">
+              <div className="p-6 bg-glass-surface rounded-2xl border border-surface/30" data-tutorial="preset-cards">
                 <PresetCards
                   onPresetSelect={onGenerateFromPreset}
                   isGenerating={isGenerating}
@@ -142,7 +142,7 @@ export function ControlDrawer({
               </div>
 
               {/* Quick Generation */}
-              <div className="space-y-4 p-6 bg-glass-surface rounded-2xl border border-surface/30">
+              <div className="space-y-4 p-6 bg-glass-surface rounded-2xl border border-surface/30" data-tutorial="quick-generate">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-body font-semibold text-foreground mb-1">

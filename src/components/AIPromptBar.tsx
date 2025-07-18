@@ -337,6 +337,7 @@ export function AIPromptBar({ onSubmit, onToggleDrawer, isGenerating }: AIPrompt
               className="flex-shrink-0 p-3 rounded-xl bg-surface/50 hover:bg-surface/80 transition-all duration-200"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              data-tutorial="settings-button"
             >
               <SlidersHorizontal className="w-5 h-5 text-foreground-secondary" />
             </motion.button>
