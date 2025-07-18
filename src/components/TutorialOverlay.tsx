@@ -119,7 +119,7 @@ export function TutorialOverlay({ isVisible, onClose, onOpenSettings }: Tutorial
   return (
     <div className="fixed inset-0 z-[9999]">
       {/* Dark backdrop with spotlight cutout */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       
       {/* Spotlight cutout area - make the highlighted element area brighter */}
       {spotlightPosition && (
@@ -129,20 +129,21 @@ export function TutorialOverlay({ isVisible, onClose, onOpenSettings }: Tutorial
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="absolute pointer-events-none bg-white/20"
+            className="absolute pointer-events-none"
             style={{
               left: spotlightPosition.left - 15,
               top: spotlightPosition.top - 15,
               width: spotlightPosition.width + 30,
               height: spotlightPosition.height + 30,
               borderRadius: '16px',
-              backdropFilter: 'brightness(2) contrast(1.5)',
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'brightness(3) contrast(2) saturate(1.2)',
               border: '3px solid #7B61FF',
               boxShadow: `
                 0 0 0 2px rgba(255, 255, 255, 0.8),
                 0 0 30px #7B61FF,
                 0 0 60px rgba(123, 97, 255, 0.8),
-                inset 0 0 20px rgba(255, 255, 255, 0.1)
+                inset 0 0 20px rgba(255, 255, 255, 0.05)
               `,
               zIndex: 10001
             }}
@@ -167,7 +168,7 @@ export function TutorialOverlay({ isVisible, onClose, onOpenSettings }: Tutorial
               height: spotlightPosition.height + 16,
               borderRadius: '12px',
               border: '2px solid #7B61FF',
-              backgroundColor: 'rgba(123, 97, 255, 0.1)',
+              backgroundColor: 'transparent',
               zIndex: 10000
             }}
           />
