@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useImageStore } from '@/store/imageStore';
 import { ImageService } from '@/lib/imageService';
 import { PromptGenerator } from '@/lib/promptGenerator';
-import { PromptBar } from '@/components/PromptBar';
+import { AIPromptBar } from '@/components/AIPromptBar';
 import { ImageFeed } from '@/components/ImageFeed';
 import { ControlDrawer } from '@/components/ControlDrawer';
 import { ImageModal } from '@/components/ImageModal';
@@ -244,8 +244,8 @@ export default function HomePage() {
         />
       </main>
 
-      {/* Fixed Prompt Bar */}
-      <PromptBar
+      {/* Fixed AI Prompt Bar */}
+      <AIPromptBar
         onSubmit={handlePromptSubmit}
         onToggleDrawer={() => setIsDrawerOpen(true)}
         isGenerating={isGenerating}
