@@ -308,22 +308,39 @@ function getPositionClasses(position: string, spotlightPosition: DOMRect | null)
   const modalWidth = 384; // max-w-sm = 384px
   const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
   const windowHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
+  
+  // Check if sidebar is likely open (element is positioned far left, indicating drawer is open)
+  const sidebarWidth = 384; // w-96 = 384px
+  const isSidebarOpen = spotlightPosition.left < sidebarWidth + 50;
 
   switch (position) {
     case 'top':
-      return `top-[${Math.max(spotlightPosition.top - 300, padding)}px] left-[${Math.min(Math.max(spotlightPosition.left + spotlightPosition.width / 2, modalWidth / 2 + padding), windowWidth - modalWidth / 2 - padding)}px] transform -translate-x-1/2`;
+      const topLeft = isSidebarOpen 
+        ? Math.max(sidebarWidth + padding, spotlightPosition.left + spotlightPosition.width / 2)
+        : Math.max(spotlightPosition.left + spotlightPosition.width / 2, modalWidth / 2 + padding);
+      return `top-[${Math.max(spotlightPosition.top - 300, padding)}px] left-[${Math.min(topLeft, windowWidth - modalWidth / 2 - padding)}px] transform -translate-x-1/2`;
+    
     case 'bottom':
-      return `top-[${Math.min(spotlightPosition.bottom + padding, windowHeight - 400)}px] left-[${Math.min(Math.max(spotlightPosition.left + spotlightPosition.width / 2, modalWidth / 2 + padding), windowWidth - modalWidth / 2 - padding)}px] transform -translate-x-1/2`;
+      const bottomLeft = isSidebarOpen 
+        ? Math.max(sidebarWidth + padding, spotlightPosition.left + spotlightPosition.width / 2)
+        : Math.max(spotlightPosition.left + spotlightPosition.width / 2, modalWidth / 2 + padding);
+      return `top-[${Math.min(spotlightPosition.bottom + padding, windowHeight - 400)}px] left-[${Math.min(bottomLeft, windowWidth - modalWidth / 2 - padding)}px] transform -translate-x-1/2`;
+    
     case 'left':
+      // When sidebar is open, force position to the right side of the screen
+      if (isSidebarOpen) {
+        return `top-[${Math.min(Math.max(spotlightPosition.top + spotlightPosition.height / 2, 200), windowHeight - 200)}px] left-[${Math.min(spotlightPosition.right + padding, windowWidth - modalWidth - padding)}px] transform -translate-y-1/2`;
+      }
       return `top-[${Math.min(Math.max(spotlightPosition.top + spotlightPosition.height / 2, 200), windowHeight - 200)}px] left-[${Math.max(spotlightPosition.left - modalWidth - padding, padding)}px] transform -translate-y-1/2`;
+    
     case 'right':
-      // If there's not enough space on the right, show on the left instead
       const rightPosition = spotlightPosition.right + padding;
       const wouldOverflow = rightPosition + modalWidth > windowWidth - padding;
       
-      if (wouldOverflow) {
-        // Show on left side instead
-        return `top-[${Math.min(Math.max(spotlightPosition.top + spotlightPosition.height / 2, 200), windowHeight - 200)}px] left-[${Math.max(spotlightPosition.left - modalWidth - padding, padding)}px] transform -translate-y-1/2`;
+      if (wouldOverflow || isSidebarOpen) {
+        // When sidebar is open or would overflow, ensure it's visible on the right side
+        const safeCenterPosition = Math.max(sidebarWidth + modalWidth / 2 + padding, windowWidth - modalWidth / 2 - padding);
+        return `top-[${Math.min(Math.max(spotlightPosition.top + spotlightPosition.height / 2, 200), windowHeight - 200)}px] left-[${safeCenterPosition}px] transform -translate-x-1/2 -translate-y-1/2`;
       } else {
         // Show on right side as intended
         return `top-[${Math.min(Math.max(spotlightPosition.top + spotlightPosition.height / 2, 200), windowHeight - 200)}px] left-[${rightPosition}px] transform -translate-y-1/2`;
