@@ -338,9 +338,10 @@ function getPositionClasses(position: string, spotlightPosition: DOMRect | null)
       const wouldOverflow = rightPosition + modalWidth > windowWidth - padding;
       
       if (wouldOverflow || isSidebarOpen) {
-        // When sidebar is open or would overflow, ensure it's visible on the right side
-        const safeCenterPosition = Math.max(sidebarWidth + modalWidth / 2 + padding, windowWidth - modalWidth / 2 - padding);
-        return `top-[${Math.min(Math.max(spotlightPosition.top + spotlightPosition.height / 2, 200), windowHeight - 200)}px] left-[${safeCenterPosition}px] transform -translate-x-1/2 -translate-y-1/2`;
+        // When sidebar is open, show in center-right of visible area
+        const visibleCenterX = sidebarWidth + (windowWidth - sidebarWidth) / 2;
+        const visibleCenterY = windowHeight / 2;
+        return `top-[${visibleCenterY}px] left-[${visibleCenterX}px] transform -translate-x-1/2 -translate-y-1/2`;
       } else {
         // Show on right side as intended
         return `top-[${Math.min(Math.max(spotlightPosition.top + spotlightPosition.height / 2, 200), windowHeight - 200)}px] left-[${rightPosition}px] transform -translate-y-1/2`;
