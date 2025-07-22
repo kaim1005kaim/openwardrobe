@@ -226,4 +226,59 @@ What are this user's fashion design preferences?`;
 
     return await this.chat(messages, 0.5, 300);
   }
+
+  /**
+   * Enhanced unified prompt generation
+   * Used by the TagAssist API for integrated prompt enhancement
+   */
+  static async enhanceUnifiedPrompt(
+    userInput: string,
+    designOptions: any,
+    generationSettings: any
+  ): Promise<string> {
+    const systemPrompt = `You are a fashion design AI assistant specialized in creating optimized Midjourney prompts for Japanese fashion designers.
+
+Your task is to create a comprehensive prompt that incorporates:
+1. User's creative input
+2. Selected design options (trend, colors, mood, season)
+3. Generation settings (aspect ratio, quality, stylization)
+4. Professional photography specifications
+
+CRITICAL RULES:
+- NEVER include text, words, letters, numbers, or typography in the prompt
+- NEVER mention signs, labels, logos, or written elements
+- Focus ONLY on visual fashion elements, materials, colors, and photography techniques
+- ALWAYS specify "single model", "one person only", "fashion lookbook style"
+- ALWAYS specify "clean minimal background", "full body composition"
+- AVOID multiple people, collage layouts, grid compositions, or split-screen effects
+- Return ONLY the enhanced prompt text (no technical parameters)
+
+Output format: Enhanced Midjourney prompt in English, optimized for fashion photography.`;
+
+    const selectedElements = [];
+    if (designOptions.trend) selectedElements.push(`${designOptions.trend} trend`);
+    if (designOptions.colorScheme) selectedElements.push(`${designOptions.colorScheme} color palette`);
+    if (designOptions.mood) selectedElements.push(`${designOptions.mood} mood`);
+    if (designOptions.season) selectedElements.push(`${designOptions.season} season`);
+
+    const userMessage = `User request: "${userInput}"
+Selected elements: ${selectedElements.join(', ')}
+Aspect ratio: ${generationSettings.aspectRatio || '1:1'}
+Quality: ${generationSettings.quality || 'high'}
+
+Create an enhanced unified fashion design prompt that incorporates all these elements.`;
+
+    const messages: DeepSeekMessage[] = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userMessage }
+    ];
+
+    const enhancedPrompt = await this.chat(messages, 0.8, 600);
+    
+    // Clean the prompt and ensure no text parameters
+    return enhancedPrompt
+      .replace(/\b(text|words?|letters?|typography|signs?|labels?)\b/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
 }

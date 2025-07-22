@@ -2,10 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SlidersHorizontal, Send, Sparkles, Wand2, TrendingUp, MessageSquare, Loader2 } from 'lucide-react';
+import { SlidersHorizontal, Send, Sparkles, Wand2, TrendingUp, MessageSquare, Loader2, Lightbulb } from 'lucide-react';
 import { TrendCache } from '@/lib/trendCache';
 import { PromptCleaner } from '@/lib/promptCleaner';
 import { useImageStore } from '@/store/imageStore';
+import { TagSuggestions } from './TagSuggestions';
 
 interface AIPromptBarProps {
   onSubmit: (prompt: string) => void;
@@ -22,9 +23,10 @@ export function AIPromptBar({ onSubmit, onToggleDrawer, isGenerating }: AIPrompt
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [trends, setTrends] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   
-  const { images, currentDesignOptions } = useImageStore();
+  const { images, currentDesignOptions, setDesignOptions } = useImageStore();
 
   // Load trends on mount
   useEffect(() => {
@@ -40,6 +42,15 @@ export function AIPromptBar({ onSubmit, onToggleDrawer, isGenerating }: AIPrompt
     }, 500);
 
     return () => clearTimeout(timer);
+  }, [prompt]);
+
+  // Show/hide tag suggestions based on prompt length
+  useEffect(() => {
+    if (prompt.length > 5) {
+      setShowTagSuggestions(true);
+    } else {
+      setShowTagSuggestions(false);
+    }
   }, [prompt]);
 
   const loadTrends = async () => {
@@ -150,6 +161,20 @@ export function AIPromptBar({ onSubmit, onToggleDrawer, isGenerating }: AIPrompt
     setPrompt(prev => prev ? `${prev}, ${trend}` : trend);
   };
 
+  const handleApplyTag = (type: string, value: string) => {
+    const updates: any = {};
+    if (type === 'trend') updates.trend = value;
+    if (type === 'colorScheme') updates.colorScheme = value;
+    if (type === 'mood') updates.mood = value;
+    if (type === 'season') updates.season = value;
+    
+    setDesignOptions({ ...currentDesignOptions, ...updates });
+  };
+
+  const handleApplyAllSuggestions = (options: any) => {
+    setDesignOptions({ ...currentDesignOptions, ...options });
+  };
+
   const refinePrompt = async (feedback: string) => {
     if (!aiPrompt || isEnhancing) return;
 
@@ -192,6 +217,7 @@ export function AIPromptBar({ onSubmit, onToggleDrawer, isGenerating }: AIPrompt
     if (e.key === 'Escape') {
       inputRef.current?.blur();
       setShowSuggestions(false);
+      setShowTagSuggestions(false);
       setShowAIPanel(false);
     }
   };
@@ -259,6 +285,25 @@ export function AIPromptBar({ onSubmit, onToggleDrawer, isGenerating }: AIPrompt
                 </>
               ) : null}
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Tag Suggestions Panel */}
+      <AnimatePresence>
+        {showTagSuggestions && prompt.length > 5 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="max-w-4xl mx-auto mb-4"
+          >
+            <TagSuggestions
+              userInput={prompt}
+              currentOptions={currentDesignOptions}
+              onApplyTag={handleApplyTag}
+              onApplyAllSuggestions={handleApplyAllSuggestions}
+            />
           </motion.div>
         )}
       </AnimatePresence>

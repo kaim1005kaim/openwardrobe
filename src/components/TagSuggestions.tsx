@@ -1,0 +1,303 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  TagAssistService, 
+  TagSuggestion as TagSuggestionType, 
+  AssistResponse 
+} from '@/lib/tagAssistService';
+import { DesignOptions } from '@/lib/types';
+
+interface TagSuggestionsProps {
+  userInput: string;
+  currentOptions: DesignOptions;
+  onApplyTag: (type: string, value: string) => void;
+  onApplyAllSuggestions: (options: Partial<DesignOptions>) => void;
+  className?: string;
+}
+
+interface TagSuggestionItemProps {
+  suggestion: TagSuggestionType;
+  onApply: (type: string, value: string) => void;
+  disabled: boolean;
+}
+
+export function TagSuggestions({
+  userInput,
+  currentOptions,
+  onApplyTag,
+  onApplyAllSuggestions,
+  className = ''
+}: TagSuggestionsProps) {
+  const [suggestions, setSuggestions] = useState<TagSuggestionType[]>([]);
+  const [userIntent, setUserIntent] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (userInput.trim()) {
+      loadSuggestions();
+    } else {
+      setSuggestions([]);
+      setUserIntent('');
+      setError(null);
+    }
+  }, [userInput, JSON.stringify(currentOptions)]);
+
+  const loadSuggestions = async () => {
+    if (!userInput.trim()) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result: AssistResponse = await TagAssistService.getSuggestions(
+        userInput,
+        currentOptions,
+        { maxSuggestions: 6 }
+      );
+
+      // Filter out suggestions for already selected categories
+      const validSuggestions = result.suggestions.filter(suggestion =>
+        TagAssistService.isValidSuggestion(suggestion, currentOptions)
+      );
+
+      setSuggestions(validSuggestions);
+      setUserIntent(result.userIntent);
+    } catch (err) {
+      console.error('Failed to load suggestions:', err);
+      setError('AIアシストの読み込みに失敗しました');
+      setSuggestions([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleApplyAllHighConfidence = () => {
+    const highConfidenceSuggestions = suggestions.filter(s => s.confidence > 0.7);
+    const updatedOptions = TagAssistService.applySuggestions(
+      currentOptions,
+      highConfidenceSuggestions,
+      0.7
+    );
+    onApplyAllSuggestions(updatedOptions);
+  };
+
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 0.8) return 'bg-green-100 text-green-700 border-green-200';
+    if (confidence >= 0.6) return 'bg-blue-100 text-blue-700 border-blue-200';
+    return 'bg-gray-100 text-gray-700 border-gray-200';
+  };
+
+  const getConfidenceText = (confidence: number) => {
+    if (confidence >= 0.8) return '高い信頼度';
+    if (confidence >= 0.6) return '中程度の信頼度';
+    return '低い信頼度';
+  };
+
+  if (!userInput.trim()) {
+    return null;
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`bg-white rounded-xl border border-surface/20 p-6 ${className}`}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-2">
+          <div className="w-2 h-2 bg-primary-accent rounded-full"></div>
+          <h3 className="text-sm font-medium text-foreground">AIタグ提案</h3>
+        </div>
+        
+        {isLoading && (
+          <div className="flex items-center space-x-2 text-foreground-secondary">
+            <div className="w-3 h-3 border border-primary-accent border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-xs">分析中...</span>
+          </div>
+        )}
+      </div>
+
+      {/* User Intent */}
+      {userIntent && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-glass-surface rounded-lg p-3 mb-4"
+        >
+          <p className="text-xs text-foreground-secondary mb-1">解釈:</p>
+          <p className="text-sm text-foreground">{userIntent}</p>
+        </motion.div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-50 text-red-600 rounded-lg p-3 text-sm">
+          {error}
+        </div>
+      )}
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="space-y-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="animate-pulse">
+              <div className="bg-gray-200 rounded-lg h-16 w-full"></div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Suggestions */}
+      <AnimatePresence mode="popLayout">
+        {!isLoading && suggestions.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="space-y-3"
+          >
+            {/* Apply All Button */}
+            {suggestions.some(s => s.confidence > 0.7) && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex justify-end mb-3"
+              >
+                <button
+                  onClick={handleApplyAllHighConfidence}
+                  className="text-xs bg-primary-accent text-white px-3 py-1.5 rounded-full hover:bg-primary-accent/90 transition-colors"
+                >
+                  高信頼度の提案をすべて適用
+                </button>
+              </motion.div>
+            )}
+
+            {/* Suggestion Items */}
+            {suggestions.map((suggestion, index) => (
+              <motion.div
+                key={`${suggestion.type}-${suggestion.value}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <TagSuggestionItem
+                  suggestion={suggestion}
+                  onApply={onApplyTag}
+                  disabled={false}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Empty State */}
+      {!isLoading && !error && suggestions.length === 0 && userInput.trim() && (
+        <div className="text-center py-6 text-foreground-secondary">
+          <p className="text-sm">このリクエストに適用可能な提案が見つかりませんでした</p>
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+function TagSuggestionItem({ 
+  suggestion, 
+  onApply, 
+  disabled 
+}: TagSuggestionItemProps) {
+  const [isApplying, setIsApplying] = useState(false);
+
+  const handleApply = async () => {
+    if (disabled || isApplying) return;
+
+    setIsApplying(true);
+    try {
+      onApply(suggestion.type, suggestion.value);
+    } finally {
+      setTimeout(() => setIsApplying(false), 500);
+    }
+  };
+
+  const confidenceColor = getConfidenceColor(suggestion.confidence);
+  const confidenceText = getConfidenceText(suggestion.confidence);
+
+  return (
+    <motion.div
+      whileHover={{ scale: disabled ? 1 : 1.02 }}
+      whileTap={{ scale: disabled ? 1 : 0.98 }}
+      className={`
+        border border-surface/20 rounded-lg p-4 cursor-pointer transition-all duration-200
+        ${disabled 
+          ? 'opacity-50 cursor-not-allowed bg-gray-50' 
+          : 'hover:border-primary-accent/30 hover:bg-glass-surface'
+        }
+        ${isApplying ? 'bg-primary-accent/10' : ''}
+      `}
+      onClick={handleApply}
+    >
+      <div className="flex items-start justify-between">
+        {/* Main Content */}
+        <div className="flex-1">
+          <div className="flex items-center space-x-2 mb-2">
+            <span className="text-xs px-2 py-1 bg-surface/50 text-foreground-secondary rounded-full">
+              {TagAssistService.getTagTypeLabel(suggestion.type)}
+            </span>
+            <span className={`text-xs px-2 py-1 rounded-full border ${confidenceColor}`}>
+              {confidenceText}
+            </span>
+          </div>
+          
+          <h4 className="font-medium text-foreground mb-1">
+            {TagAssistService.getTagValueLabel(suggestion.type, suggestion.value)}
+          </h4>
+          
+          <p className="text-sm text-foreground-secondary">
+            {suggestion.reason}
+          </p>
+        </div>
+
+        {/* Apply Button / Status */}
+        <div className="ml-4 flex items-center">
+          {isApplying ? (
+            <div className="w-5 h-5 border border-primary-accent border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              className="w-6 h-6 bg-primary-accent text-white rounded-full flex items-center justify-center"
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </motion.div>
+          )}
+        </div>
+      </div>
+
+      {/* Confidence Bar */}
+      <div className="mt-3 bg-surface/30 rounded-full h-1">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${suggestion.confidence * 100}%` }}
+          className="h-full bg-primary-accent rounded-full"
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        />
+      </div>
+    </motion.div>
+  );
+}
+
+// Helper functions (same as in TagAssistService but repeated for performance)
+function getConfidenceColor(confidence: number) {
+  if (confidence >= 0.8) return 'bg-green-100 text-green-700 border-green-200';
+  if (confidence >= 0.6) return 'bg-blue-100 text-blue-700 border-blue-200';
+  return 'bg-gray-100 text-gray-700 border-gray-200';
+}
+
+function getConfidenceText(confidence: number) {
+  if (confidence >= 0.8) return '高い信頼度';
+  if (confidence >= 0.6) return '中程度の信頼度';
+  return '低い信頼度';
+}

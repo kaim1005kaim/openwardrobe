@@ -39,6 +39,14 @@ export async function POST(request: NextRequest) {
         result = await DeepSeekService.analyzeUserPreferences(params.promptHistory);
         break;
 
+      case 'enhance_unified':
+        result = await DeepSeekService.enhanceUnifiedPrompt(
+          params.userInput,
+          params.designOptions,
+          params.generationSettings
+        );
+        break;
+
       default:
         return NextResponse.json(
           { error: 'Invalid action' },
