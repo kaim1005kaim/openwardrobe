@@ -115,6 +115,12 @@ Analyze this input and suggest the most appropriate design tags. Focus on what t
       isValidSuggestion(s)
     ) || [];
 
+    // If AI returned no suggestions, try fallback
+    if (validSuggestions.length === 0) {
+      console.warn('AI returned no valid suggestions, using fallback');
+      return generateFallbackSuggestions(userInput);
+    }
+
     return {
       suggestions: validSuggestions,
       userIntent: parsed.userIntent || userInput,
@@ -248,40 +254,99 @@ function generateFallbackSuggestions(userInput: string): AssistResponse {
   const input = userInput.toLowerCase();
   const suggestions: TagSuggestion[] = [];
 
-  // Simple keyword matching
-  if (input.includes('business') || input.includes('office') || input.includes('work')) {
+  // Japanese and English keyword matching
+  
+  // Professional/Business styles
+  if (input.includes('business') || input.includes('office') || input.includes('work') ||
+      input.includes('オフィス') || input.includes('ビジネス') || input.includes('仕事') ||
+      input.includes('プロフェッショナル') || input.includes('エレガント') || input.includes('上品')) {
     suggestions.push({
       type: 'mood',
       value: 'professional',
       confidence: 0.8,
-      reason: 'Business context detected'
+      reason: 'ビジネス・オフィス向けスタイル'
+    });
+    
+    // Also suggest preppy trend for office style
+    suggestions.push({
+      type: 'trend',
+      value: 'preppy',
+      confidence: 0.7,
+      reason: 'オフィススタイルに適したトレンド'
     });
   }
 
-  if (input.includes('casual') || input.includes('everyday') || input.includes('relaxed')) {
+  // Casual styles
+  if (input.includes('casual') || input.includes('everyday') || input.includes('relaxed') ||
+      input.includes('カジュアル') || input.includes('普段') || input.includes('リラックス')) {
     suggestions.push({
       type: 'mood', 
       value: 'casual',
       confidence: 0.7,
-      reason: 'Casual style indicators found'
+      reason: 'カジュアルスタイル指標'
     });
   }
 
-  if (input.includes('minimal') || input.includes('simple') || input.includes('clean')) {
+  // Minimalist styles
+  if (input.includes('minimal') || input.includes('simple') || input.includes('clean') ||
+      input.includes('ミニマル') || input.includes('シンプル') || input.includes('すっきり')) {
     suggestions.push({
       type: 'trend',
       value: 'minimalist',
       confidence: 0.8,
-      reason: 'Minimalist design elements mentioned'
+      reason: 'ミニマルデザイン要素'
     });
   }
 
-  if (input.includes('colorful') || input.includes('bright') || input.includes('vibrant')) {
+  // Elegant/Sophisticated
+  if (input.includes('elegant') || input.includes('sophisticated') ||
+      input.includes('エレガント') || input.includes('洗練') || input.includes('上品')) {
+    suggestions.push({
+      type: 'mood',
+      value: 'sophisticated',
+      confidence: 0.8,
+      reason: 'エレガント・洗練されたスタイル'
+    });
+  }
+
+  // Color suggestions
+  if (input.includes('colorful') || input.includes('bright') || input.includes('vibrant') ||
+      input.includes('カラフル') || input.includes('明るい') || input.includes('鮮やか')) {
     suggestions.push({
       type: 'colorScheme',
       value: 'vivid',
       confidence: 0.7,
-      reason: 'Bright color preferences indicated'
+      reason: '明るい色彩の好み'
+    });
+  }
+
+  // Monochrome for office/professional
+  if (input.includes('office') || input.includes('professional') || input.includes('business') ||
+      input.includes('オフィス') || input.includes('プロフェッショナル') || input.includes('ビジネス')) {
+    suggestions.push({
+      type: 'colorScheme',
+      value: 'monochrome',
+      confidence: 0.7,
+      reason: 'オフィス環境に適したカラー'
+    });
+  }
+
+  // Season suggestions
+  if (input.includes('春') || input.includes('spring')) {
+    suggestions.push({
+      type: 'season',
+      value: 'spring',
+      confidence: 0.8,
+      reason: '春シーズン向け'
+    });
+  }
+
+  if (input.includes('夏') || input.includes('summer')) {
+    suggestions.push({
+      type: 'season',
+      value: 'summer',
+      confidence: 0.8,
+      reason: '夏シーズン向け'
     });
   }
 
