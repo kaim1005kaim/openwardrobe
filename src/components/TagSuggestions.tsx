@@ -59,9 +59,14 @@ export function TagSuggestions({
       console.log('[TagSuggestions] Result from API:', result);
 
       // Filter out suggestions for already selected categories
-      const validSuggestions = result.suggestions.filter(suggestion =>
-        TagAssistService.isValidSuggestion(suggestion, currentOptions)
-      );
+      console.log('[TagSuggestions] Current options:', currentOptions);
+      console.log('[TagSuggestions] All suggestions before filter:', result.suggestions);
+      
+      const validSuggestions = result.suggestions.filter(suggestion => {
+        const isValid = TagAssistService.isValidSuggestion(suggestion, currentOptions);
+        console.log(`[TagSuggestions] Suggestion ${suggestion.type}:${suggestion.value} - isValid: ${isValid}`);
+        return isValid;
+      });
 
       console.log('[TagSuggestions] Valid suggestions after filter:', validSuggestions);
 
