@@ -73,7 +73,7 @@ export function SelectionSummaryBar({
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="sticky top-0 z-50 bg-glass-surface backdrop-blur-xl border-b border-surface/30 p-4"
+      className="sticky top-[88px] z-40 bg-glass-surface backdrop-blur-xl border-b border-surface/30 p-4"
     >
       <div className="flex items-center justify-between gap-4">
         {/* Selection Pills */}
