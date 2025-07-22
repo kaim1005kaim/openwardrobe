@@ -239,12 +239,12 @@ function TagSuggestionItem({
       whileHover={{ scale: disabled ? 1 : 1.02 }}
       whileTap={{ scale: disabled ? 1 : 0.98 }}
       className={`
-        border border-surface/20 rounded-lg p-4 cursor-pointer transition-all duration-200
+        border border-gray-300 rounded-lg p-4 cursor-pointer transition-all duration-200 bg-white
         ${disabled 
           ? 'opacity-50 cursor-not-allowed bg-gray-50' 
-          : 'hover:border-primary-accent/30 hover:bg-glass-surface'
+          : 'hover:border-primary-accent hover:shadow-md'
         }
-        ${isApplying ? 'bg-primary-accent/10' : ''}
+        ${isApplying ? 'bg-blue-50 border-primary-accent' : ''}
       `}
       onClick={handleApply}
     >
@@ -252,19 +252,19 @@ function TagSuggestionItem({
         {/* Main Content */}
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-2">
-            <span className="text-xs px-2 py-1 bg-surface/50 text-foreground-secondary rounded-full">
+            <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 font-medium rounded-full border border-gray-200">
               {TagAssistService.getTagTypeLabel(suggestion.type)}
             </span>
-            <span className={`text-xs px-2 py-1 rounded-full border ${confidenceColor}`}>
+            <span className={`text-xs px-2 py-1 rounded-full border font-medium ${confidenceColor}`}>
               {confidenceText}
             </span>
           </div>
           
-          <h4 className="font-medium text-foreground mb-1">
+          <h4 className="font-semibold text-gray-900 mb-1">
             {TagAssistService.getTagValueLabel(suggestion.type, suggestion.value)}
           </h4>
           
-          <p className="text-sm text-foreground-secondary">
+          <p className="text-sm text-gray-600">
             {suggestion.reason}
           </p>
         </div>
@@ -272,11 +272,11 @@ function TagSuggestionItem({
         {/* Apply Button / Status */}
         <div className="ml-4 flex items-center">
           {isApplying ? (
-            <div className="w-5 h-5 border border-primary-accent border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-5 h-5 border-2 border-primary-accent border-t-transparent rounded-full animate-spin"></div>
           ) : (
             <motion.div
               whileHover={{ scale: 1.1 }}
-              className="w-6 h-6 bg-primary-accent text-white rounded-full flex items-center justify-center"
+              className="w-6 h-6 bg-primary-accent text-white rounded-full flex items-center justify-center shadow-sm"
             >
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -287,7 +287,7 @@ function TagSuggestionItem({
       </div>
 
       {/* Confidence Bar */}
-      <div className="mt-3 bg-surface/30 rounded-full h-1">
+      <div className="mt-3 bg-gray-200 rounded-full h-1">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${suggestion.confidence * 100}%` }}
