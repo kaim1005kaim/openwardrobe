@@ -174,16 +174,16 @@ export default function HomePage() {
     
     setGenerating(true);
     
+    // Create job in job store (outside try block so it's accessible in catch)
+    const jobId = createJob({
+      prompt: prompt,
+      designOptions: currentDesignOptions,
+      action: 'generate'
+    });
+    
     try {
       // AIPromptBar already handles prompt enhancement, so we use the prompt as-is
       console.log('🎨 Submitting prompt:', prompt);
-      
-      // Create job in job store
-      const jobId = createJob({
-        prompt: prompt,
-        designOptions: currentDesignOptions,
-        action: 'generate'
-      });
       
       // Start the generation process
       updateJobStatus(jobId, 'submitting');
@@ -252,6 +252,8 @@ export default function HomePage() {
       return;
     }
 
+    let jobId: string | null = null;
+
     try {
       console.log('🎨 Generating from settings:', currentDesignOptions);
       
@@ -263,7 +265,7 @@ export default function HomePage() {
       );
 
       // Create job in job store for settings generation
-      const jobId = createJob({
+      jobId = createJob({
         prompt: generatedPrompt,
         designOptions: currentDesignOptions,
         action: 'generate'
@@ -301,13 +303,13 @@ export default function HomePage() {
     } catch (error) {
       console.error('❌ Settings generation failed:', error);
       
-      // If offline, add to network queue for retry
-      if (!online) {
+      // If offline and job was created, add to network queue for retry
+      if (!online && jobId) {
         const failedJob: import('@/lib/types').GenerationJob = {
           id: jobId,
           createdAt: Date.now(),
           params: {
-            prompt: generatedPrompt,
+            prompt: 'Failed settings generation',
             designOptions: currentDesignOptions,
             action: 'generate' as const
           },
@@ -334,6 +336,8 @@ export default function HomePage() {
       return;
     }
 
+    let jobId: string | null = null;
+
     try {
       console.log('🎨 Generating from preset:', preset.name);
       
@@ -348,7 +352,7 @@ export default function HomePage() {
       );
 
       // Create job in job store for preset generation
-      const jobId = createJob({
+      jobId = createJob({
         prompt: generatedPrompt,
         designOptions: preset.options,
         action: 'generate'
@@ -386,13 +390,13 @@ export default function HomePage() {
     } catch (error) {
       console.error('❌ Preset generation failed:', error);
       
-      // If offline, add to network queue for retry  
-      if (!online) {
+      // If offline and job was created, add to network queue for retry  
+      if (!online && jobId) {
         const failedJob: import('@/lib/types').GenerationJob = {
           id: jobId,
           createdAt: Date.now(),
           params: {
-            prompt: generatedPrompt,
+            prompt: `Failed preset generation: ${preset.name}`,
             designOptions: preset.options,
             action: 'generate' as const
           },
