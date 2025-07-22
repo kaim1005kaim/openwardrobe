@@ -1,4 +1,4 @@
-import { DesignOptions } from './types';
+import { DesignOptions, GenerationSettings } from './types';
 import { PromptGenerator } from './promptGenerator';
 
 export interface PresetDesign {
@@ -222,6 +222,150 @@ export class PresetGenerator {
       aspectRatio: '9:16',
       quality: 'high'
     });
+  }
+
+  /**
+   * Generate unified prompt with generation settings
+   * This creates a single prompt instead of multiple separate prompts
+   */
+  static async generateUnifiedPrompt(
+    options: DesignOptions,
+    settings: GenerationSettings,
+    userHint?: string
+  ): Promise<string> {
+    // Create a comprehensive prompt that incorporates all settings
+    const selectedElements: string[] = [];
+    
+    if (options.trend) {
+      selectedElements.push(this.getTrendDescription(options.trend));
+    }
+    
+    if (options.colorScheme) {
+      selectedElements.push(this.getColorSchemeDescription(options.colorScheme));
+    }
+    
+    if (options.mood) {
+      selectedElements.push(this.getMoodDescription(options.mood));
+    }
+    
+    if (options.season) {
+      selectedElements.push(this.getSeasonDescription(options.season));
+    }
+
+    // Base prompt with unified elements
+    let basePrompt = `Single model wearing ${selectedElements.join(' with ')} fashion design, full body composition against minimal background`;
+
+    if (userHint) {
+      basePrompt = `${userHint}, ${basePrompt}`;
+    }
+
+    // Add technical parameters to prompt
+    const technicalParams: string[] = [];
+    
+    // Add aspect ratio
+    technicalParams.push(`--ar ${settings.aspectRatio}`);
+    
+    // Add Midjourney version
+    if (settings.mjVersion === 'niji5') {
+      technicalParams.push('--niji 5');
+    } else if (settings.mjVersion === 'niji6') {
+      technicalParams.push('--niji 6');
+    } else if (settings.mjVersion === '5.2') {
+      technicalParams.push('--v 5.2');
+    } else {
+      technicalParams.push('--v 6');
+    }
+    
+    // Add quality setting
+    if (settings.quality === 'ultra') {
+      technicalParams.push('--q 2');
+    } else if (settings.quality === 'high') {
+      technicalParams.push('--q 1');
+    }
+    
+    // Add stylization
+    if (settings.stylize !== 100) {
+      technicalParams.push(`--s ${settings.stylize}`);
+    }
+
+    // Combine prompt with technical parameters
+    const finalPrompt = `${basePrompt} ${technicalParams.join(' ')}`;
+
+    // Try AI enhancement
+    try {
+      const response = await fetch('/api/deepseek', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'enhance_unified',
+          userInput: finalPrompt,
+          designOptions: options,
+          generationSettings: settings
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.result;
+      }
+    } catch (error) {
+      console.warn('AI enhancement failed, using base generation:', error);
+    }
+
+    return finalPrompt;
+  }
+
+  /**
+   * Helper methods for detailed descriptions
+   */
+  private static getTrendDescription(trend: string): string {
+    const descriptions: Record<string, string> = {
+      'minimalist': 'clean architectural silhouettes with precise tailoring',
+      'y2k': 'futuristic metallic textures and cyber-inspired elements',
+      'cottage-core': 'romantic florals with vintage pastoral charm',
+      'tech-wear': 'functional urban utility with modern performance fabrics',
+      'vintage': 'classic retro styling with timeless elegance',
+      'bohemian': 'flowing fabrics with artistic free-spirited details',
+      'streetwear': 'urban casual comfort with contemporary edge',
+      'preppy': 'polished collegiate style with refined sophistication'
+    };
+    return descriptions[trend] || trend;
+  }
+
+  private static getColorSchemeDescription(colorScheme: string): string {
+    const descriptions: Record<string, string> = {
+      'monochrome': 'sophisticated black and white tones',
+      'pastel': 'soft dreamy colors and gentle hues',
+      'vivid': 'bold saturated colors with high contrast',
+      'earth-tone': 'natural warm browns and organic colors',
+      'jewel-tone': 'rich emerald and sapphire deep colors',
+      'neon': 'electric bright colors with luminous glow',
+      'muted': 'subtle understated colors with gentle saturation'
+    };
+    return descriptions[colorScheme] || colorScheme;
+  }
+
+  private static getMoodDescription(mood: string): string {
+    const descriptions: Record<string, string> = {
+      'casual': 'relaxed comfortable everyday styling',
+      'formal': 'elegant sophisticated formal wear',
+      'edgy': 'bold rebellious avant-garde styling',
+      'romantic': 'feminine delicate dreamy styling',
+      'professional': 'polished business-appropriate styling',
+      'playful': 'fun whimsical creative styling',
+      'sophisticated': 'refined luxurious high-end styling'
+    };
+    return descriptions[mood] || mood;
+  }
+
+  private static getSeasonDescription(season: string): string {
+    const descriptions: Record<string, string> = {
+      'spring': 'fresh renewal with light layering',
+      'summer': 'breathable fabrics with sun-kissed styling',
+      'autumn': 'warm rich textures with cozy layering',
+      'winter': 'luxurious materials with structured silhouettes'
+    };
+    return descriptions[season] || season;
   }
 
   /**

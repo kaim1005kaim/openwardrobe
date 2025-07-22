@@ -1,17 +1,19 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { GeneratedImage, DesignOptions, ImageStatus } from '@/lib/types';
+import { GeneratedImage, DesignOptions, ImageStatus, GenerationSettings } from '@/lib/types';
 import { useImageHistory } from '@/hooks/useImageHistory';
 
 interface ImageStore {
   // State
   images: GeneratedImage[];
   currentDesignOptions: DesignOptions;
+  generationSettings: GenerationSettings;
   isGenerating: boolean;
   favorites: string[];
   
   // Actions
   setDesignOptions: (options: DesignOptions) => void;
+  setGenerationSettings: (settings: GenerationSettings) => void;
   addImage: (image: GeneratedImage) => void;
   updateImageStatus: (id: string, status: ImageStatus) => void;
   setGenerating: (isGenerating: boolean) => void;
@@ -36,11 +38,19 @@ export const useImageStore = create<ImageStore>()(
         mood: null,
         season: 'spring'
       },
+      generationSettings: {
+        batchSize: 4,
+        mjVersion: '6',
+        aspectRatio: '1:1',
+        quality: 'high',
+        stylize: 100
+      },
       isGenerating: false,
       favorites: [],
       
       // Actions
       setDesignOptions: (options) => set({ currentDesignOptions: options }),
+      setGenerationSettings: (settings) => set({ generationSettings: settings }),
       
       addImage: (image) => set((state) => {
         // Check if image already exists to prevent duplicates

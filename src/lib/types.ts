@@ -32,11 +32,22 @@ export interface DesignOptions {
   style?: StyleType;
 }
 
+// Generation Settings for advanced configuration
+export interface GenerationSettings {
+  batchSize: number; // Number of variations to generate (1-4)
+  mjVersion: string; // Midjourney version ('5.2' | '6' | 'niji5' | 'niji6')
+  aspectRatio: AspectRatioType; // Image aspect ratio
+  quality: QualityType; // Generation quality
+  stylize: number; // Stylization strength (0-1000)
+}
+
 export type TrendType = 'minimalist' | 'y2k' | 'cottage-core' | 'tech-wear' | 'vintage' | 'bohemian' | 'streetwear' | 'preppy';
 export type ColorSchemeType = 'monochrome' | 'pastel' | 'vivid' | 'earth-tone' | 'jewel-tone' | 'neon' | 'muted';
 export type MoodType = 'casual' | 'formal' | 'edgy' | 'romantic' | 'professional' | 'playful' | 'sophisticated';
 export type SeasonType = 'spring' | 'summer' | 'autumn' | 'winter';
 export type StyleType = 'dress' | 'casual' | 'business' | 'evening' | 'athletic' | 'loungewear';
+export type AspectRatioType = '1:1' | '2:3' | '3:2' | '16:9' | '9:16' | '4:5' | '5:4';
+export type QualityType = 'standard' | 'high' | 'ultra';
 
 export interface GeneratedImage {
   id: string;

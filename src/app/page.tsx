@@ -22,6 +22,8 @@ export default function HomePage() {
   const { 
     currentDesignOptions, 
     setDesignOptions, 
+    generationSettings,
+    setGenerationSettings,
     isGenerating,
     setGenerating,
     images,
@@ -253,9 +255,10 @@ export default function HomePage() {
     try {
       console.log('🎨 Generating from settings:', currentDesignOptions);
       
-      // Generate prompt from current design options
-      const generatedPrompt = await PresetGenerator.generateFromPartialOptions(
+      // Generate unified prompt from current design options and generation settings
+      const generatedPrompt = await PresetGenerator.generateUnifiedPrompt(
         currentDesignOptions,
+        generationSettings,
         '現在の設定に基づいたファッションデザイン'
       );
 
@@ -337,8 +340,12 @@ export default function HomePage() {
       // Update design options with preset
       setDesignOptions(preset.options);
       
-      // Generate prompt from preset
-      const generatedPrompt = await PresetGenerator.generateFromPreset(preset.id);
+      // Generate unified prompt from preset with current generation settings
+      const generatedPrompt = await PresetGenerator.generateUnifiedPrompt(
+        preset.options,
+        generationSettings,
+        `プリセット「${preset.name}」に基づくファッションデザイン`
+      );
 
       // Create job in job store for preset generation
       const jobId = createJob({
@@ -598,6 +605,8 @@ export default function HomePage() {
         onClose={() => setIsDrawerOpen(false)}
         designOptions={currentDesignOptions}
         onDesignOptionsChange={setDesignOptions}
+        generationSettings={generationSettings}
+        onGenerationSettingsChange={setGenerationSettings}
         onGenerateFromSettings={handleGenerateFromSettings}
         onGenerateFromPreset={handleGenerateFromPreset}
         isGenerating={isGenerating}

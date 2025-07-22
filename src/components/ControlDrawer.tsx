@@ -1,8 +1,8 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Palette, Sparkles, Calendar, Shirt, Wand2, Shuffle } from 'lucide-react';
-import { DesignOptions } from '@/lib/types';
+import { X, Palette, Sparkles, Calendar, Shirt, Wand2, Shuffle, Settings, Image } from 'lucide-react';
+import { DesignOptions, GenerationSettings } from '@/lib/types';
 import { PresetCards } from './PresetCards';
 import { PresetDesign, PresetGenerator } from '@/lib/presetGenerator';
 import { SelectionSummaryBar } from './SelectionSummaryBar';
@@ -12,6 +12,8 @@ interface ControlDrawerProps {
   onClose: () => void;
   designOptions: DesignOptions;
   onDesignOptionsChange: (options: DesignOptions) => void;
+  generationSettings: GenerationSettings;
+  onGenerationSettingsChange: (settings: GenerationSettings) => void;
   onGenerateFromSettings: () => void;
   onGenerateFromPreset: (preset: PresetDesign) => void;
   isGenerating: boolean;
@@ -22,6 +24,8 @@ export function ControlDrawer({
   onClose, 
   designOptions, 
   onDesignOptionsChange,
+  generationSettings,
+  onGenerationSettingsChange,
   onGenerateFromSettings,
   onGenerateFromPreset,
   isGenerating
@@ -29,6 +33,13 @@ export function ControlDrawer({
   const handleOptionChange = (key: keyof DesignOptions, value: any) => {
     onDesignOptionsChange({
       ...designOptions,
+      [key]: value
+    });
+  };
+
+  const handleGenerationSettingChange = (key: keyof GenerationSettings, value: any) => {
+    onGenerationSettingsChange({
+      ...generationSettings,
       [key]: value
     });
   };
@@ -116,9 +127,9 @@ export function ControlDrawer({
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             className="fixed left-0 top-0 h-full w-96 bg-surface/95 backdrop-blur-xl border-r border-surface/50 z-50 flex flex-col"
           >
-            {/* Header */}
-            <div className="p-8 border-b border-surface/30">
-              <div className="flex items-center justify-between">
+            {/* Header with Selection Summary */}
+            <div className="p-6 border-b border-surface/30">
+              <div className="flex items-center justify-between mb-4">
                 <h2 className="text-h2 font-semibold text-foreground">
                   デザイン設定
                 </h2>
@@ -129,40 +140,70 @@ export function ControlDrawer({
                   <X className="w-5 h-5 text-foreground-secondary" />
                 </button>
               </div>
+
+              {/* Selection Pills */}
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                {designOptions.trend && (
+                  <SelectionPill
+                    label={trendOptions.find(t => t.id === designOptions.trend)?.label || designOptions.trend}
+                    onRemove={() => handleOptionChange('trend', null)}
+                    color="blue"
+                  />
+                )}
+                {designOptions.colorScheme && (
+                  <SelectionPill
+                    label={colorOptions.find(c => c.id === designOptions.colorScheme)?.label || designOptions.colorScheme}
+                    onRemove={() => handleOptionChange('colorScheme', null)}
+                    color="pink"
+                  />
+                )}
+                {designOptions.mood && (
+                  <SelectionPill
+                    label={moodOptions.find(m => m.id === designOptions.mood)?.label || designOptions.mood}
+                    onRemove={() => handleOptionChange('mood', null)}
+                    color="green"
+                  />
+                )}
+                {designOptions.season && (
+                  <SelectionPill
+                    label={seasonOptions.find(s => s.id === designOptions.season)?.label || designOptions.season}
+                    onRemove={() => handleOptionChange('season', 'spring')}
+                    color="orange"
+                  />
+                )}
+                {getSelectionCount() > 0 && (
+                  <button
+                    onClick={() => onDesignOptionsChange({
+                      trend: null,
+                      colorScheme: null,
+                      mood: null,
+                      season: 'spring'
+                    })}
+                    className="text-xs text-foreground-secondary hover:text-foreground px-2 py-1 rounded-md hover:bg-surface/30"
+                  >
+                    すべてクリア
+                  </button>
+                )}
+              </div>
+
+              {/* Generate Button */}
+              <motion.button
+                onClick={onGenerateFromSettings}
+                disabled={!designOptions.trend || isGenerating}
+                className={`w-full p-3 rounded-xl font-medium transition-all ${
+                  designOptions.trend && !isGenerating
+                    ? 'bg-primary-accent hover:bg-primary-accent/90 text-white'
+                    : 'bg-surface/50 text-foreground-secondary cursor-not-allowed'
+                }`}
+                whileHover={designOptions.trend && !isGenerating ? { scale: 1.02 } : {}}
+                whileTap={designOptions.trend && !isGenerating ? { scale: 0.98 } : {}}
+              >
+                <div className="flex items-center justify-center space-x-2">
+                  <Wand2 className="w-4 h-4" />
+                  <span>選択した設定で生成</span>
+                </div>
+              </motion.button>
             </div>
-            
-            {/* Selection Summary Bar */}
-            <SelectionSummaryBar
-              designOptions={designOptions}
-              onClearAll={() => onDesignOptionsChange({
-                trend: null,
-                colorScheme: null,
-                mood: null,
-                season: 'spring'
-              })}
-              onRemoveTag={(kind) => {
-                const newOptions = { ...designOptions };
-                switch (kind) {
-                  case 'style':
-                    newOptions.trend = null;
-                    break;
-                  case 'color':
-                    newOptions.colorScheme = null;
-                    break;
-                  case 'mood':
-                    newOptions.mood = null;
-                    break;
-                  case 'season':
-                    // Season is required, don't remove
-                    break;
-                }
-                onDesignOptionsChange(newOptions);
-              }}
-              onGenerate={onGenerateFromSettings}
-              isGenerating={isGenerating}
-              isDisabled={!designOptions.trend}
-              disabledReason="スタイルを1つ以上選んでください"
-            />
 
             {/* Content - Scrollable */}
             <div className="flex-1 overflow-y-auto p-8 space-y-8">
@@ -281,10 +322,160 @@ export function ControlDrawer({
                   ))}
                 </div>
               </div>
+
+              {/* Generation Settings */}
+              <div>
+                <div className="flex items-center space-x-2 mb-4">
+                  <Settings className="w-5 h-5 text-primary-accent" />
+                  <h3 className="text-body font-medium text-foreground">生成設定</h3>
+                </div>
+                <div className="space-y-6">
+                  {/* Batch Size */}
+                  <div>
+                    <label className="block text-sm font-medium text-foreground-secondary mb-2">
+                      生成枚数
+                    </label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[1, 2, 3, 4].map((size) => (
+                        <motion.button
+                          key={size}
+                          onClick={() => handleGenerationSettingChange('batchSize', size)}
+                          className={`p-3 rounded-lg border text-center transition-all ${
+                            generationSettings.batchSize === size
+                              ? 'border-primary-accent bg-primary-accent/10 text-primary-accent'
+                              : 'border-surface/50 hover:border-surface text-foreground-secondary hover:text-foreground'
+                          }`}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className="text-sm font-medium">{size}</div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Midjourney Version */}
+                  <div>
+                    <label className="block text-sm font-medium text-foreground-secondary mb-2">
+                      MJバージョン
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { id: '5.2', label: 'MJ 5.2' },
+                        { id: '6', label: 'MJ 6' },
+                        { id: 'niji5', label: 'Niji 5' },
+                        { id: 'niji6', label: 'Niji 6' }
+                      ].map((version) => (
+                        <motion.button
+                          key={version.id}
+                          onClick={() => handleGenerationSettingChange('mjVersion', version.id)}
+                          className={`p-3 rounded-lg border text-center transition-all ${
+                            generationSettings.mjVersion === version.id
+                              ? 'border-primary-accent bg-primary-accent/10 text-primary-accent'
+                              : 'border-surface/50 hover:border-surface text-foreground-secondary hover:text-foreground'
+                          }`}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className="text-sm font-medium">{version.label}</div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Aspect Ratio */}
+                  <div>
+                    <label className="block text-sm font-medium text-foreground-secondary mb-2">
+                      アスペクト比
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: '1:1', label: '正方形' },
+                        { id: '2:3', label: 'ポートレート' },
+                        { id: '3:2', label: 'ランドスケープ' },
+                        { id: '16:9', label: 'ワイド' },
+                        { id: '9:16', label: '縦長' },
+                        { id: '4:5', label: 'インスタ' }
+                      ].map((ratio) => (
+                        <motion.button
+                          key={ratio.id}
+                          onClick={() => handleGenerationSettingChange('aspectRatio', ratio.id)}
+                          className={`p-3 rounded-lg border text-center transition-all ${
+                            generationSettings.aspectRatio === ratio.id
+                              ? 'border-primary-accent bg-primary-accent/10 text-primary-accent'
+                              : 'border-surface/50 hover:border-surface text-foreground-secondary hover:text-foreground'
+                          }`}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className="text-xs font-medium">{ratio.label}</div>
+                          <div className="text-xs text-foreground-secondary">{ratio.id}</div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Quality */}
+                  <div>
+                    <label className="block text-sm font-medium text-foreground-secondary mb-2">
+                      画質
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'standard', label: '標準' },
+                        { id: 'high', label: '高品質' },
+                        { id: 'ultra', label: '最高品質' }
+                      ].map((quality) => (
+                        <motion.button
+                          key={quality.id}
+                          onClick={() => handleGenerationSettingChange('quality', quality.id)}
+                          className={`p-3 rounded-lg border text-center transition-all ${
+                            generationSettings.quality === quality.id
+                              ? 'border-primary-accent bg-primary-accent/10 text-primary-accent'
+                              : 'border-surface/50 hover:border-surface text-foreground-secondary hover:text-foreground'
+                          }`}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className="text-sm font-medium">{quality.label}</div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </motion.div>
         </>
       )}
     </AnimatePresence>
+  );
+}
+
+// SelectionPill component for drawer
+interface SelectionPillProps {
+  label: string;
+  onRemove: () => void;
+  color: 'blue' | 'pink' | 'green' | 'orange';
+}
+
+function SelectionPill({ label, onRemove, color }: SelectionPillProps) {
+  const colorClasses = {
+    blue: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
+    pink: 'bg-pink-500/20 text-pink-300 border-pink-500/40',
+    green: 'bg-green-500/20 text-green-300 border-green-500/40',
+    orange: 'bg-orange-500/20 text-orange-300 border-orange-500/40'
+  };
+
+  return (
+    <div className={`flex items-center space-x-2 px-3 py-1.5 rounded-full border text-sm font-medium ${colorClasses[color]}`}>
+      <span>{label}</span>
+      <button
+        onClick={onRemove}
+        className="hover:bg-white/10 rounded-full p-0.5 transition-colors"
+      >
+        <X className="w-3 h-3" />
+      </button>
+    </div>
   );
 }
