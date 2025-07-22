@@ -169,10 +169,22 @@ export function AIPromptBar({ onSubmit, onToggleDrawer, isGenerating }: AIPrompt
     if (type === 'season') updates.season = value;
     
     setDesignOptions({ ...currentDesignOptions, ...updates });
+    
+    // Hide tag suggestions temporarily to prevent loop
+    setShowTagSuggestions(false);
+    setTimeout(() => {
+      // Re-enable after a delay if user is still typing
+      if (prompt.length > 5) {
+        setShowTagSuggestions(true);
+      }
+    }, 2000);
   };
 
   const handleApplyAllSuggestions = (options: any) => {
     setDesignOptions({ ...currentDesignOptions, ...options });
+    
+    // Hide tag suggestions after bulk application
+    setShowTagSuggestions(false);
   };
 
   const refinePrompt = async (feedback: string) => {
@@ -303,6 +315,7 @@ export function AIPromptBar({ onSubmit, onToggleDrawer, isGenerating }: AIPrompt
               currentOptions={currentDesignOptions}
               onApplyTag={handleApplyTag}
               onApplyAllSuggestions={handleApplyAllSuggestions}
+              onGenerate={handleSubmit}
             />
           </motion.div>
         )}

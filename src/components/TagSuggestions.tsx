@@ -12,6 +12,7 @@ interface TagSuggestionsProps {
   currentOptions: DesignOptions;
   onApplyTag: (type: string, value: string) => void;
   onApplyAllSuggestions: (options: Partial<DesignOptions>) => void;
+  onGenerate?: () => void;
   className?: string;
 }
 
@@ -26,12 +27,15 @@ export function TagSuggestions({
   currentOptions,
   onApplyTag,
   onApplyAllSuggestions,
+  onGenerate,
   className = ''
 }: TagSuggestionsProps) {
   const [suggestions, setSuggestions] = useState<TagSuggestionType[]>([]);
   const [userIntent, setUserIntent] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [appliedTags, setAppliedTags] = useState<Set<string>>(new Set());
+  const [showGenerateButton, setShowGenerateButton] = useState(false);
 
   React.useEffect(() => {
     if (userInput.trim()) {
@@ -72,6 +76,12 @@ export function TagSuggestions({
 
       setSuggestions(validSuggestions);
       setUserIntent(result.userIntent);
+      
+      // Reset applied tags when loading new suggestions
+      if (validSuggestions.length > 0) {
+        setAppliedTags(new Set());
+        setShowGenerateButton(false);
+      }
     } catch (err) {
       console.error('Failed to load suggestions:', err);
       // Don't show error message if we have no suggestions
@@ -194,7 +204,14 @@ export function TagSuggestions({
               >
                 <TagSuggestionItem
                   suggestion={suggestion}
-                  onApply={onApplyTag}
+                  onApply={(type, value) => {
+                    onApplyTag(type, value);
+                    const tagKey = `${type}:${value}`;
+                    const newAppliedTags = new Set(appliedTags);
+                    newAppliedTags.add(tagKey);
+                    setAppliedTags(newAppliedTags);
+                    setShowGenerateButton(true);
+                  }}
                   disabled={false}
                 />
               </motion.div>
@@ -208,6 +225,31 @@ export function TagSuggestions({
         <div className="text-center py-6 bg-gray-50 rounded-lg border border-gray-200">
           <p className="text-sm text-gray-700 font-medium">このリクエストに適用可能な提案が見つかりませんでした</p>
         </div>
+      )}
+
+      {/* Generate Button */}
+      {(showGenerateButton || appliedTags.size > 0) && onGenerate && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-4 text-center"
+        >
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              onGenerate();
+              setShowGenerateButton(false);
+              setAppliedTags(new Set());
+            }}
+            className="px-6 py-3 bg-primary-accent hover:bg-primary-accent/90 text-white font-medium rounded-xl shadow-lg transition-all duration-200 flex items-center space-x-2 mx-auto"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span>このタグで生成</span>
+          </motion.button>
+        </motion.div>
       )}
     </motion.div>
   );
