@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Heart, Search, Download, Eye, Trash2 } from "lucide-react";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useAuth } from "@/hooks/useAuth";
+import { PresetGenerator } from "@/lib/presetGenerator";
 
 interface FavoritesPanelProps {
   isOpen: boolean;
@@ -227,7 +228,7 @@ function FavoriteImageCard({ favorite, onRemove }: FavoriteImageCardProps) {
       {/* Info */}
       <div className="p-2">
         <p className="text-xs text-gray-600 line-clamp-2 mb-1">
-          {image.prompt}
+          {PresetGenerator.cleanPromptForDisplay(image.prompt)}
         </p>
         <div className="flex justify-between items-center">
           <p className="text-xs text-gray-400">

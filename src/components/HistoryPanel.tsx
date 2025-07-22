@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { History, Search, Filter, Heart, Trash2, Download, Eye } from "lucide-react";
 import { useImageHistory } from "@/hooks/useImageHistory";
 import { useAuth } from "@/hooks/useAuth";
+import { PresetGenerator } from "@/lib/presetGenerator";
 
 interface HistoryPanelProps {
   isOpen: boolean;
@@ -215,7 +216,7 @@ function HistoryImageCard({ image }: HistoryImageCardProps) {
       {/* Info */}
       <div className="p-2">
         <p className="text-xs text-gray-600 line-clamp-2 mb-1">
-          {image.prompt}
+          {PresetGenerator.cleanPromptForDisplay(image.prompt)}
         </p>
         <p className="text-xs text-gray-400">
           {new Date(image.createdAt).toLocaleDateString()}

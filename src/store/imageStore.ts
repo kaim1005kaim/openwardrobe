@@ -40,7 +40,6 @@ export const useImageStore = create<ImageStore>()(
       },
       generationSettings: {
         batchSize: 4,
-        mjVersion: '6',
         aspectRatio: '1:1',
         quality: 'high',
         stylize: 100

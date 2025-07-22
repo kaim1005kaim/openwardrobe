@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Download, Eye, Zap, MoreHorizontal } from 'lucide-react';
 import { GeneratedImage } from '@/lib/types';
 import { getLoadingCopy, getProgressBasedCopy } from '@/lib/loadingCopy';
+import { PresetGenerator } from '@/lib/presetGenerator';
 
 interface ImageCardProps {
   image: GeneratedImage;
@@ -291,7 +292,7 @@ export function ImageCard({ image, isFavorite, isHighlighted = false, onImageCli
              WebkitLineClamp: 2, 
              WebkitBoxOrient: 'vertical' 
            }}>
-          {image.prompt}
+          {PresetGenerator.cleanPromptForDisplay(image.prompt)}
         </p>
         <div className="flex items-center justify-between mt-2">
           <time className="text-caption text-foreground-secondary">

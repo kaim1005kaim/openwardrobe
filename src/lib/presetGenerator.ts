@@ -259,46 +259,41 @@ export class PresetGenerator {
       basePrompt = `${userHint}, ${basePrompt}`;
     }
 
-    // Add technical parameters to prompt
-    const technicalParams: string[] = [];
+    // Create internal technical parameters (hidden from user)
+    const internalTechnicalParams: string[] = [];
+    
+    // Always use MJ7 (internal only)
+    internalTechnicalParams.push('--v 7');
     
     // Add aspect ratio
-    technicalParams.push(`--ar ${settings.aspectRatio}`);
-    
-    // Add Midjourney version
-    if (settings.mjVersion === 'niji5') {
-      technicalParams.push('--niji 5');
-    } else if (settings.mjVersion === 'niji6') {
-      technicalParams.push('--niji 6');
-    } else if (settings.mjVersion === '5.2') {
-      technicalParams.push('--v 5.2');
-    } else {
-      technicalParams.push('--v 6');
-    }
+    internalTechnicalParams.push(`--ar ${settings.aspectRatio}`);
     
     // Add quality setting
     if (settings.quality === 'ultra') {
-      technicalParams.push('--q 2');
+      internalTechnicalParams.push('--q 2');
     } else if (settings.quality === 'high') {
-      technicalParams.push('--q 1');
+      internalTechnicalParams.push('--q 1');
     }
     
     // Add stylization
     if (settings.stylize !== 100) {
-      technicalParams.push(`--s ${settings.stylize}`);
+      internalTechnicalParams.push(`--s ${settings.stylize}`);
     }
 
-    // Combine prompt with technical parameters
-    const finalPrompt = `${basePrompt} ${technicalParams.join(' ')}`;
+    // Create user-facing prompt (clean, no technical parameters visible)
+    const userPrompt = basePrompt;
+    
+    // Create internal prompt with technical parameters (for API)
+    const internalPrompt = `${basePrompt} ${internalTechnicalParams.join(' ')}`;
 
-    // Try AI enhancement
+    // Try AI enhancement (using user prompt for enhancement, but return internal prompt for API)
     try {
       const response = await fetch('/api/deepseek', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'enhance_unified',
-          userInput: finalPrompt,
+          userInput: userPrompt,
           designOptions: options,
           generationSettings: settings
         })
@@ -306,13 +301,32 @@ export class PresetGenerator {
 
       if (response.ok) {
         const data = await response.json();
-        return data.result;
+        // Enhance the user prompt but add technical parameters for internal use
+        const enhancedUserPrompt = data.result;
+        return `${enhancedUserPrompt} ${internalTechnicalParams.join(' ')}`;
       }
     } catch (error) {
       console.warn('AI enhancement failed, using base generation:', error);
     }
 
-    return finalPrompt;
+    // Return internal prompt with technical parameters (hidden from user display)
+    return internalPrompt;
+  }
+
+  /**
+   * Clean user-facing prompt by removing technical parameters
+   * This hides Midjourney-specific elements from the UI
+   */
+  static cleanPromptForDisplay(prompt: string): string {
+    // Remove all Midjourney technical parameters
+    return prompt
+      .replace(/--v\s+\d+(\.\d+)?/g, '') // Remove version parameters
+      .replace(/--ar\s+[\d:]+/g, '') // Remove aspect ratio
+      .replace(/--q\s+\d+/g, '') // Remove quality
+      .replace(/--s\s+\d+/g, '') // Remove stylization
+      .replace(/--niji\s+\d+/g, '') // Remove niji parameters
+      .replace(/\s+/g, ' ') // Clean up extra spaces
+      .trim();
   }
 
   /**

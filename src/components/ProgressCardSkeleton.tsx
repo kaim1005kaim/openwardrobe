@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { LoadingPhase, LoadingState } from '@/lib/types';
 import { Loader2, Clock, Palette, Sparkles, CheckCircle } from 'lucide-react';
 import { getLoadingCopy, getProgressBasedCopy } from '@/lib/loadingCopy';
+import { PresetGenerator } from '@/lib/presetGenerator';
 
 interface ProgressCardSkeletonProps {
   loadingState: LoadingState;
@@ -133,7 +134,7 @@ export function ProgressCardSkeleton({
               プロンプト
             </p>
             <p className="text-sm text-foreground line-clamp-2">
-              {prompt}
+              {PresetGenerator.cleanPromptForDisplay(prompt)}
             </p>
           </div>
         )}

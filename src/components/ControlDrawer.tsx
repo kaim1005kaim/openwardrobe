@@ -354,34 +354,6 @@ export function ControlDrawer({
                     </div>
                   </div>
 
-                  {/* Midjourney Version */}
-                  <div>
-                    <label className="block text-sm font-medium text-foreground-secondary mb-2">
-                      MJバージョン
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        { id: '5.2', label: 'MJ 5.2' },
-                        { id: '6', label: 'MJ 6' },
-                        { id: 'niji5', label: 'Niji 5' },
-                        { id: 'niji6', label: 'Niji 6' }
-                      ].map((version) => (
-                        <motion.button
-                          key={version.id}
-                          onClick={() => handleGenerationSettingChange('mjVersion', version.id)}
-                          className={`p-3 rounded-lg border text-center transition-all ${
-                            generationSettings.mjVersion === version.id
-                              ? 'border-primary-accent bg-primary-accent/10 text-primary-accent'
-                              : 'border-surface/50 hover:border-surface text-foreground-secondary hover:text-foreground'
-                          }`}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <div className="text-sm font-medium">{version.label}</div>
-                        </motion.button>
-                      ))}
-                    </div>
-                  </div>
 
                   {/* Aspect Ratio */}
                   <div>

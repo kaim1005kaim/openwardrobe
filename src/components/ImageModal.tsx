@@ -6,6 +6,7 @@ import { GeneratedImage } from '@/lib/types';
 import { useImageStore } from '@/store/imageStore';
 import { ImageService } from '@/lib/imageService';
 import { PromptGenerator } from '@/lib/promptGenerator';
+import { PresetGenerator } from '@/lib/presetGenerator';
 import { extractQuadrantFromImage, downloadImageFromBlob } from '@/lib/imageUtils';
 import { ImageGrid } from '@/components/ImageGrid';
 import { SelectableImageGrid } from '@/components/SelectableImageGrid';
@@ -221,7 +222,7 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
               </div>
               <div>
                 <span className="text-sm text-foreground-secondary">プロンプト</span>
-                <p className="text-sm text-foreground mt-2 p-3 bg-surface/30 rounded-xl border border-surface/20">{image.prompt}</p>
+                <p className="text-sm text-foreground mt-2 p-3 bg-surface/30 rounded-xl border border-surface/20">{PresetGenerator.cleanPromptForDisplay(image.prompt)}</p>
               </div>
             </div>
           </div>

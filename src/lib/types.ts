@@ -35,7 +35,6 @@ export interface DesignOptions {
 // Generation Settings for advanced configuration
 export interface GenerationSettings {
   batchSize: number; // Number of variations to generate (1-4)
-  mjVersion: string; // Midjourney version ('5.2' | '6' | 'niji5' | 'niji6')
   aspectRatio: AspectRatioType; // Image aspect ratio
   quality: QualityType; // Generation quality
   stylize: number; // Stylization strength (0-1000)
