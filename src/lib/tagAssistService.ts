@@ -228,16 +228,17 @@ export class TagAssistService {
     suggestion: TagSuggestion,
     currentOptions: DesignOptions
   ): boolean {
-    // Check if the suggestion category is already filled
+    // Allow all valid suggestions - they can replace existing selections
+    // Only filter out if the suggestion is the same as current selection
     switch (suggestion.type) {
       case 'trend':
-        return !currentOptions.trend;
+        return suggestion.value !== currentOptions.trend;
       case 'colorScheme':
-        return !currentOptions.colorScheme;
+        return suggestion.value !== currentOptions.colorScheme;
       case 'mood':
-        return !currentOptions.mood;
+        return suggestion.value !== currentOptions.mood;
       case 'season':
-        return !currentOptions.season;
+        return suggestion.value !== currentOptions.season;
       default:
         return false;
     }
