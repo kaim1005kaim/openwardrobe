@@ -9,7 +9,7 @@ interface NetworkStore extends NetworkState {
   dequeue: (jobId: string) => void;
   addToRetryQueue: (job: GenerationJob) => void;
   removeFromRetryQueue: (jobId: string) => void;
-  updateJobStatus: (jobId: string, status: JobStatus, error?: { code: string; message: string }) => void;
+  updateJobStatus: (jobId: string, status: JobStatus, error?: { code: string; message: string; retryCount?: number }) => void;
   flush: () => Promise<void>;
   retryJob: (jobId: string) => Promise<void>;
   clearQueues: () => void;
