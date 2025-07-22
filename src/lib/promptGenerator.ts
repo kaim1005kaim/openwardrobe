@@ -73,7 +73,7 @@ export class PromptGenerator {
     }
     
     // Add seasonal elements
-    if (settings.includeSeasonalConsistency) {
+    if (settings.includeSeasonalConsistency && options.season) {
       const seasonElements = this.styleElements.seasons[options.season];
       elements.push(...this.selectRandomElements(seasonElements, 1));
     }
