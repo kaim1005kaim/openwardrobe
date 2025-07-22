@@ -13,6 +13,7 @@ interface NetworkStore extends NetworkState {
   flush: () => Promise<void>;
   retryJob: (jobId: string) => Promise<void>;
   clearQueues: () => void;
+  handleJobFailure: (job: GenerationJob, error: Error) => void;
   
   // Computed
   getTotalPendingJobs: () => number;
@@ -143,18 +144,6 @@ export const useNetworkStore = create<NetworkStore>()(
           set({ pendingQueue: [], retryQueue: [] });
         },
 
-        // Computed getters
-        getTotalPendingJobs: () => {
-          const { pendingQueue, retryQueue } = get();
-          return pendingQueue.length + retryQueue.length;
-        },
-
-        getJobById: (jobId) => {
-          const { pendingQueue, retryQueue } = get();
-          return [...pendingQueue, ...retryQueue].find(job => job.id === jobId);
-        },
-
-        // Internal helper
         handleJobFailure: (job: GenerationJob, error: Error) => {
           const retryCount = (job.error?.retryCount || 0) + 1;
           
@@ -170,6 +159,17 @@ export const useNetworkStore = create<NetworkStore>()(
           }
           
           get().dequeue(job.id);
+        },
+
+        // Computed getters
+        getTotalPendingJobs: () => {
+          const { pendingQueue, retryQueue } = get();
+          return pendingQueue.length + retryQueue.length;
+        },
+
+        getJobById: (jobId) => {
+          const { pendingQueue, retryQueue } = get();
+          return [...pendingQueue, ...retryQueue].find(job => job.id === jobId);
         }
       }),
       {
