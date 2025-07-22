@@ -102,19 +102,19 @@ export function TagSuggestions({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-white rounded-xl border border-surface/20 p-6 ${className}`}
+      className={`bg-white rounded-xl border border-gray-300 shadow-sm p-6 ${className}`}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-primary-accent rounded-full"></div>
-          <h3 className="text-sm font-medium text-foreground">AIタグ提案</h3>
+          <h3 className="text-sm font-semibold text-gray-900">AIタグ提案</h3>
         </div>
         
         {isLoading && (
-          <div className="flex items-center space-x-2 text-foreground-secondary">
+          <div className="flex items-center space-x-2 text-gray-600">
             <div className="w-3 h-3 border border-primary-accent border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-xs">分析中...</span>
+            <span className="text-xs font-medium">分析中...</span>
           </div>
         )}
       </div>
@@ -124,10 +124,10 @@ export function TagSuggestions({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="bg-glass-surface rounded-lg p-3 mb-4"
+          className="bg-gray-100 rounded-lg p-3 mb-4 border border-gray-200"
         >
-          <p className="text-xs text-foreground-secondary mb-1">解釈:</p>
-          <p className="text-sm text-foreground">{userIntent}</p>
+          <p className="text-xs text-gray-600 mb-1 font-medium">解釈:</p>
+          <p className="text-sm text-gray-800 font-medium">{userIntent}</p>
         </motion.div>
       )}
 
@@ -195,8 +195,8 @@ export function TagSuggestions({
 
       {/* Empty State */}
       {!isLoading && !error && suggestions.length === 0 && userInput.trim() && (
-        <div className="text-center py-6 text-foreground-secondary">
-          <p className="text-sm">このリクエストに適用可能な提案が見つかりませんでした</p>
+        <div className="text-center py-6 bg-gray-50 rounded-lg border border-gray-200">
+          <p className="text-sm text-gray-700 font-medium">このリクエストに適用可能な提案が見つかりませんでした</p>
         </div>
       )}
     </motion.div>
