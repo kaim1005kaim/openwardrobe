@@ -12,6 +12,7 @@ import { AIPromptBar } from '@/components/AIPromptBar';
 import { ImageFeed } from '@/components/ImageFeed';
 import { ControlDrawer } from '@/components/ControlDrawer';
 import { ImageModal } from '@/components/ImageModal';
+import { SelectionSummaryBar } from '@/components/SelectionSummaryBar';
 import { GeneratedImage } from '@/lib/types';
 
 export default function HomePage() {
@@ -323,8 +324,28 @@ export default function HomePage() {
         </div>
       </motion.header>
 
+      {/* Selection Summary Bar */}
+      <SelectionSummaryBar
+        designOptions={currentDesignOptions}
+        onClearAll={() => setDesignOptions({
+          trend: null,
+          colorScheme: null, 
+          mood: null,
+          season: 'spring'
+        })}
+        onRemoveTag={(kind) => {
+          const updates: any = {};
+          if (kind === 'style') updates.trend = null;
+          if (kind === 'color') updates.colorScheme = null;
+          if (kind === 'mood') updates.mood = null;
+          setDesignOptions({ ...currentDesignOptions, ...updates });
+        }}
+        onGenerate={handleGenerateFromSettings}
+        isGenerating={isGenerating}
+      />
+
       {/* Main Content */}
-      <main className="pt-24 relative z-10" data-tutorial="image-feed">
+      <main className="pt-36 relative z-10" data-tutorial="image-feed">
         <ImageFeed
           images={sortedImages}
           onImageClick={setSelectedImage}
