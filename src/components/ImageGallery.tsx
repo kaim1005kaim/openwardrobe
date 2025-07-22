@@ -1,15 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { Heart, Download, Share2, Palette, Sparkles, RotateCcw, Trash2, ExternalLink } from 'lucide-react';
+import { Heart, Download, Share2, Palette, Sparkles, RotateCcw, Trash2, ExternalLink, History } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GeneratedImage } from '@/lib/types';
 import { useImageStore } from '@/store/imageStore';
 import { useJobStore } from '@/store/jobStore';
+import { useAuth } from '@/hooks/useAuth';
 import { ImageService } from '@/lib/imageService';
 import { PromptGenerator } from '@/lib/promptGenerator';
 import { ImageGrid } from '@/components/ImageGrid';
 import { ImageModal } from '@/components/ImageModal';
+import { HistoryPanel } from '@/components/HistoryPanel';
+import { FavoritesPanel } from '@/components/FavoritesPanel';
 import { extractQuadrantFromImage, downloadImageFromBlob } from '@/lib/imageUtils';
 
 interface ImageGalleryProps {
@@ -19,7 +22,10 @@ interface ImageGalleryProps {
 export function ImageGallery({ images }: ImageGalleryProps) {
   const { toggleFavorite, favorites, removeImage } = useImageStore();
   const { getJobById, highlightJob } = useJobStore();
+  const { isAuthenticated } = useAuth();
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showFavorites, setShowFavorites] = useState(false);
   
   // Handler for creating image variations
   const onVariation = (image: GeneratedImage, type: 'color' | 'pattern' | 'mood' | 'upscale') => {
@@ -62,6 +68,37 @@ export function ImageGallery({ images }: ImageGalleryProps) {
 
   return (
     <>
+      {/* Gallery Header with History Button */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-medium text-gray-900">生成された画像</h2>
+          {images.length > 0 && (
+            <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
+              {images.length}
+            </span>
+          )}
+        </div>
+        
+        {isAuthenticated && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowFavorites(true)}
+              className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <Heart size={16} />
+              お気に入り
+            </button>
+            <button
+              onClick={() => setShowHistory(true)}
+              className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <History size={16} />
+              履歴
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         <AnimatePresence>
           {images.map((image) => (
@@ -88,6 +125,18 @@ export function ImageGallery({ images }: ImageGalleryProps) {
           onClose={handleCloseModal}
         />
       )}
+      
+      {/* History Panel */}
+      <HistoryPanel
+        isOpen={showHistory}
+        onClose={() => setShowHistory(false)}
+      />
+      
+      {/* Favorites Panel */}
+      <FavoritesPanel
+        isOpen={showFavorites}
+        onClose={() => setShowFavorites(false)}
+      />
     </>
   );
 }

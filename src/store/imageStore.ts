@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { GeneratedImage, DesignOptions, ImageStatus } from '@/lib/types';
+import { useImageHistory } from '@/hooks/useImageHistory';
 
 interface ImageStore {
   // State
@@ -52,6 +53,26 @@ export const useImageStore = create<ImageStore>()(
             )
           };
         }
+        
+        // Save to persistent storage if user is authenticated
+        if (typeof window !== 'undefined') {
+          // Note: This is a bit of a hack - ideally we'd have access to auth state here
+          // In a real implementation, we might dispatch this through a different mechanism
+          fetch('/api/images', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt: image.prompt,
+              designOptions: image.designOptions,
+              status: image.status,
+              progress: image.progress || 0,
+              imageUrl: image.imageUrl,
+              upscaledUrls: image.upscaled_urls || [],
+              tags: [] // Could extract tags from designOptions
+            })
+          }).catch(console.error); // Silent fail for anonymous users
+        }
+        
         // Add new image
         return {
           images: [image, ...state.images].slice(0, 100) // Keep only last 100 images

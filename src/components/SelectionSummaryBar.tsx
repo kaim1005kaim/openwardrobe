@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Wand2, Loader2 } from 'lucide-react';
 import { SelectionTag, DesignOptions } from '@/lib/types';
 import { getLoadingCopy } from '@/lib/loadingCopy';
+import { LoginButton } from '@/components/auth/LoginButton';
+import { useAuth } from '@/hooks/useAuth';
 
 interface SelectionSummaryBarProps {
   designOptions: DesignOptions;
@@ -109,41 +111,38 @@ export function SelectionSummaryBar({
           )}
         </div>
         
-        {/* Generate Button */}
-        <div className="relative">
-          <motion.button
-            onClick={onGenerate}
-            disabled={!isValidForGeneration || isGenerating}
-            className={`
-              flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200
-              ${isValidForGeneration && !isGenerating
-                ? 'bg-primary-accent hover:bg-primary-accent/90 text-white shadow-lg shadow-primary-accent/30'
-                : 'bg-surface/50 text-foreground-secondary cursor-not-allowed'
-              }
-            `}
-            whileHover={isValidForGeneration && !isGenerating ? { scale: 1.02 } : {}}
-            whileTap={isValidForGeneration && !isGenerating ? { scale: 0.98 } : {}}
-            title={!isValidForGeneration ? disabledReason || 'スタイルを1つ以上選択してください' : undefined}
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>{getLoadingCopy('generating')}</span>
-              </>
-            ) : (
-              <>
-                <Wand2 className="w-4 h-4" />
-                <span>生成する</span>
-              </>
-            )}
-          </motion.button>
+        {/* Auth and Generate Button */}
+        <div className="flex items-center gap-3">
+          <LoginButton />
           
-          {/* Tooltip for disabled state */}
-          {!isValidForGeneration && (
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-surface/90 text-xs text-foreground rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              {disabledReason || 'スタイルを1つ以上選択してください'}
-            </div>
-          )}
+          <div className="relative">
+            <motion.button
+              onClick={onGenerate}
+              disabled={!isValidForGeneration || isGenerating}
+              className={`
+                flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200
+                ${isValidForGeneration && !isGenerating
+                  ? 'bg-primary-accent hover:bg-primary-accent/90 text-white shadow-lg shadow-primary-accent/30'
+                  : 'bg-surface/50 text-foreground-secondary cursor-not-allowed'
+                }
+              `}
+              whileHover={isValidForGeneration && !isGenerating ? { scale: 1.02 } : {}}
+              whileTap={isValidForGeneration && !isGenerating ? { scale: 0.98 } : {}}
+              title={!isValidForGeneration ? disabledReason || 'スタイルを1つ以上選択してください' : undefined}
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>{getLoadingCopy('generating')}</span>
+                </>
+              ) : (
+                <>
+                  <Wand2 className="w-4 h-4" />
+                  <span>生成する</span>
+                </>
+              )}
+            </motion.button>
+          </div>
         </div>
       </div>
     </motion.div>

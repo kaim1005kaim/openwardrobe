@@ -1,3 +1,28 @@
+import type { User as PrismaUser } from "@prisma/client";
+
+// Extend NextAuth types
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      email?: string | null;
+      name?: string | null;
+      image?: string | null;
+      role?: string;
+    };
+  }
+
+  interface User extends PrismaUser {
+    role: string;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    role?: string;
+  }
+}
+
 // Core Types for Imagine Fashion Generator
 export interface DesignOptions {
   trend: TrendType | null;
