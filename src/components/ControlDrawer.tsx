@@ -125,7 +125,7 @@ export function ControlDrawer({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -400, opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed left-0 top-0 h-full w-96 bg-surface/95 backdrop-blur-xl border-r border-surface/50 z-50 flex flex-col"
+            className="fixed left-0 top-0 h-full w-[480px] bg-surface/95 backdrop-blur-xl border-r border-surface/50 z-50 flex flex-col"
           >
             {/* Header with Selection Summary */}
             <div className="p-6 border-b border-surface/30">
@@ -167,7 +167,7 @@ export function ControlDrawer({
                 {designOptions.season && (
                   <SelectionPill
                     label={seasonOptions.find(s => s.id === designOptions.season)?.label || designOptions.season}
-                    onRemove={() => handleOptionChange('season', 'spring')}
+                    onRemove={() => handleOptionChange('season', null)}
                     color="orange"
                   />
                 )}
@@ -177,7 +177,7 @@ export function ControlDrawer({
                       trend: null,
                       colorScheme: null,
                       mood: null,
-                      season: 'spring'
+                      season: null
                     })}
                     className="text-xs text-foreground-secondary hover:text-foreground px-2 py-1 rounded-md hover:bg-surface/30"
                   >
@@ -189,14 +189,14 @@ export function ControlDrawer({
               {/* Generate Button */}
               <motion.button
                 onClick={onGenerateFromSettings}
-                disabled={!designOptions.trend || isGenerating}
+                disabled={getSelectionCount() === 0 || isGenerating}
                 className={`w-full p-3 rounded-xl font-medium transition-all ${
-                  designOptions.trend && !isGenerating
+                  getSelectionCount() > 0 && !isGenerating
                     ? 'bg-primary-accent hover:bg-primary-accent/90 text-white'
                     : 'bg-surface/50 text-foreground-secondary cursor-not-allowed'
                 }`}
-                whileHover={designOptions.trend && !isGenerating ? { scale: 1.02 } : {}}
-                whileTap={designOptions.trend && !isGenerating ? { scale: 0.98 } : {}}
+                whileHover={getSelectionCount() > 0 && !isGenerating ? { scale: 1.02 } : {}}
+                whileTap={getSelectionCount() > 0 && !isGenerating ? { scale: 0.98 } : {}}
               >
                 <div className="flex items-center justify-center space-x-2">
                   <Wand2 className="w-4 h-4" />

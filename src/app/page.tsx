@@ -532,7 +532,7 @@ export default function HomePage() {
           trend: null,
           colorScheme: null, 
           mood: null,
-          season: 'spring'
+          season: null
         })}
         onRemoveTag={(kind) => {
           const updates: any = {};

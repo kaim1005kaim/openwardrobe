@@ -28,7 +28,7 @@ export interface DesignOptions {
   trend: TrendType | null;
   colorScheme: ColorSchemeType | null;
   mood: MoodType | null;
-  season: SeasonType;
+  season: SeasonType | null;
   style?: StyleType;
 }
 

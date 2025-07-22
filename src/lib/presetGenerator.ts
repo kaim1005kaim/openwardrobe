@@ -163,7 +163,7 @@ export class PresetGenerator {
       trend: options.trend || null,
       colorScheme: options.colorScheme || null,
       mood: options.mood || null,
-      season: options.season || this.getCurrentSeason()
+      season: options.season || null
     };
 
     // Create descriptive prompt based on selected options

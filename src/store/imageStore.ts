@@ -36,7 +36,7 @@ export const useImageStore = create<ImageStore>()(
         trend: null,
         colorScheme: null,
         mood: null,
-        season: 'spring'
+        season: null
       },
       generationSettings: {
         batchSize: 4,
