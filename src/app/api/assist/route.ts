@@ -251,13 +251,17 @@ function isValidSuggestion(suggestion: any): suggestion is TagSuggestion {
  * Fallback rule-based suggestions when AI fails
  */
 function generateFallbackSuggestions(userInput: string): AssistResponse {
-  const input = userInput.toLowerCase();
+  console.log('[Fallback] Processing input:', userInput);
+  
+  // Don't lowercase Japanese text - it breaks the characters
+  const input = userInput;
+  const inputLower = userInput.toLowerCase();
   const suggestions: TagSuggestion[] = [];
 
   // Japanese and English keyword matching
   
   // Professional/Business styles
-  if (input.includes('business') || input.includes('office') || input.includes('work') ||
+  if (inputLower.includes('business') || inputLower.includes('office') || inputLower.includes('work') ||
       input.includes('オフィス') || input.includes('ビジネス') || input.includes('仕事') ||
       input.includes('プロフェッショナル') || input.includes('エレガント') || input.includes('上品')) {
     suggestions.push({
@@ -277,7 +281,7 @@ function generateFallbackSuggestions(userInput: string): AssistResponse {
   }
 
   // Casual styles
-  if (input.includes('casual') || input.includes('everyday') || input.includes('relaxed') ||
+  if (inputLower.includes('casual') || inputLower.includes('everyday') || inputLower.includes('relaxed') ||
       input.includes('カジュアル') || input.includes('普段') || input.includes('リラックス')) {
     suggestions.push({
       type: 'mood', 
@@ -288,7 +292,7 @@ function generateFallbackSuggestions(userInput: string): AssistResponse {
   }
 
   // Minimalist styles
-  if (input.includes('minimal') || input.includes('simple') || input.includes('clean') ||
+  if (inputLower.includes('minimal') || inputLower.includes('simple') || inputLower.includes('clean') ||
       input.includes('ミニマル') || input.includes('シンプル') || input.includes('すっきり')) {
     suggestions.push({
       type: 'trend',
@@ -299,7 +303,7 @@ function generateFallbackSuggestions(userInput: string): AssistResponse {
   }
 
   // Elegant/Sophisticated
-  if (input.includes('elegant') || input.includes('sophisticated') ||
+  if (inputLower.includes('elegant') || inputLower.includes('sophisticated') ||
       input.includes('エレガント') || input.includes('洗練') || input.includes('上品')) {
     suggestions.push({
       type: 'mood',
@@ -310,7 +314,7 @@ function generateFallbackSuggestions(userInput: string): AssistResponse {
   }
 
   // Color suggestions
-  if (input.includes('colorful') || input.includes('bright') || input.includes('vibrant') ||
+  if (inputLower.includes('colorful') || inputLower.includes('bright') || inputLower.includes('vibrant') ||
       input.includes('カラフル') || input.includes('明るい') || input.includes('鮮やか')) {
     suggestions.push({
       type: 'colorScheme',
@@ -321,7 +325,7 @@ function generateFallbackSuggestions(userInput: string): AssistResponse {
   }
 
   // Monochrome for office/professional
-  if (input.includes('office') || input.includes('professional') || input.includes('business') ||
+  if (inputLower.includes('office') || inputLower.includes('professional') || inputLower.includes('business') ||
       input.includes('オフィス') || input.includes('プロフェッショナル') || input.includes('ビジネス')) {
     suggestions.push({
       type: 'colorScheme',
@@ -350,6 +354,8 @@ function generateFallbackSuggestions(userInput: string): AssistResponse {
     });
   }
 
+  console.log('[Fallback] Generated suggestions:', suggestions.length);
+  
   return {
     suggestions,
     userIntent: `Fashion design request: ${userInput}`

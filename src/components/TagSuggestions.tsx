@@ -65,7 +65,8 @@ export function TagSuggestions({
       setUserIntent(result.userIntent);
     } catch (err) {
       console.error('Failed to load suggestions:', err);
-      setError('AIアシストの読み込みに失敗しました');
+      // Don't show error message if we have no suggestions
+      // The API should have returned fallback suggestions
       setSuggestions([]);
     } finally {
       setIsLoading(false);
