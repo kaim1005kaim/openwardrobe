@@ -40,6 +40,8 @@ export class TagAssistService {
     } = options;
 
     try {
+      console.log('[TagAssist] Calling API with:', { userInput, currentOptions, mode });
+      
       const response = await fetch(this.API_ENDPOINT, {
         method: 'POST',
         headers: {
@@ -57,9 +59,10 @@ export class TagAssistService {
       }
 
       const result: AssistResponse = await response.json();
+      console.log('[TagAssist] API Response:', result);
 
       // Limit suggestions count
-      if (result.suggestions.length > maxSuggestions) {
+      if (result.suggestions && result.suggestions.length > maxSuggestions) {
         result.suggestions = result.suggestions
           .sort((a, b) => b.confidence - a.confidence)
           .slice(0, maxSuggestions);

@@ -16,9 +16,13 @@ interface AssistResponse {
 }
 
 export async function POST(request: NextRequest) {
+  console.log('[/api/assist] Request received');
+  
   try {
     const body = await request.json();
     const { userInput, currentOptions, mode = 'suggestions' } = body;
+    
+    console.log('[/api/assist] Input:', userInput, 'Mode:', mode);
 
     if (!userInput || typeof userInput !== 'string') {
       return NextResponse.json(

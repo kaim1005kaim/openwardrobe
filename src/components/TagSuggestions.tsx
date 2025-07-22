@@ -56,10 +56,14 @@ export function TagSuggestions({
         { maxSuggestions: 6 }
       );
 
+      console.log('[TagSuggestions] Result from API:', result);
+
       // Filter out suggestions for already selected categories
       const validSuggestions = result.suggestions.filter(suggestion =>
         TagAssistService.isValidSuggestion(suggestion, currentOptions)
       );
+
+      console.log('[TagSuggestions] Valid suggestions after filter:', validSuggestions);
 
       setSuggestions(validSuggestions);
       setUserIntent(result.userIntent);
