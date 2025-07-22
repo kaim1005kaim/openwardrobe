@@ -36,6 +36,7 @@ export function TagSuggestions({
   const [error, setError] = useState<string | null>(null);
   const [appliedTags, setAppliedTags] = useState<Set<string>>(new Set());
   const [showGenerateButton, setShowGenerateButton] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   React.useEffect(() => {
     if (userInput.trim()) {
@@ -129,128 +130,164 @@ export function TagSuggestions({
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-primary-accent rounded-full"></div>
           <h3 className="text-sm font-semibold text-gray-900">AIタグ提案</h3>
+          {!isLoading && suggestions.length > 0 && (
+            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+              {suggestions.length}件
+            </span>
+          )}
         </div>
         
-        {isLoading && (
-          <div className="flex items-center space-x-2 text-gray-600">
-            <div className="w-3 h-3 border border-primary-accent border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-xs font-medium">分析中...</span>
-          </div>
-        )}
+        <div className="flex items-center space-x-2">
+          {isLoading && (
+            <div className="flex items-center space-x-2 text-gray-600">
+              <div className="w-3 h-3 border border-primary-accent border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-xs font-medium">分析中...</span>
+            </div>
+          )}
+          
+          {/* Collapse Button */}
+          {!isLoading && suggestions.length > 0 && (
+            <motion.button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-1 hover:bg-gray-100 rounded transition-colors"
+            >
+              <motion.div
+                animate={{ rotate: isCollapsed ? -90 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <svg className="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </motion.div>
+            </motion.button>
+          )}
+        </div>
       </div>
 
-      {/* User Intent */}
-      {userIntent && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="bg-gray-100 rounded-lg p-3 mb-4 border border-gray-200"
-        >
-          <p className="text-xs text-gray-600 mb-1 font-medium">解釈:</p>
-          <p className="text-sm text-gray-800 font-medium">{userIntent}</p>
-        </motion.div>
-      )}
-
-      {/* Error State */}
-      {error && (
-        <div className="bg-red-50 text-red-600 rounded-lg p-3 text-sm">
-          {error}
-        </div>
-      )}
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className="space-y-3">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="animate-pulse">
-              <div className="bg-gray-200 rounded-lg h-16 w-full"></div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Suggestions */}
-      <AnimatePresence mode="popLayout">
-        {!isLoading && suggestions.length > 0 && (
+      {/* Collapsible Content */}
+      <AnimatePresence>
+        {!isCollapsed && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-3"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            style={{ overflow: "hidden" }}
           >
-            {/* Apply All Button */}
-            {suggestions.some(s => s.confidence > 0.7) && (
+            {/* User Intent */}
+            {userIntent && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex justify-end mb-3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="bg-gray-100 rounded-lg p-3 mb-4 border border-gray-200"
               >
-                <button
-                  onClick={handleApplyAllHighConfidence}
-                  className="text-xs bg-primary-accent text-white px-3 py-1.5 rounded-full hover:bg-primary-accent/90 transition-colors"
-                >
-                  高信頼度の提案をすべて適用
-                </button>
+                <p className="text-xs text-gray-600 mb-1 font-medium">解釈:</p>
+                <p className="text-sm text-gray-800 font-medium">{userIntent}</p>
               </motion.div>
             )}
 
-            {/* Suggestion Items */}
-            {suggestions.map((suggestion, index) => (
+            {/* Error State */}
+            {error && (
+              <div className="bg-red-50 text-red-600 rounded-lg p-3 text-sm mb-4">
+                {error}
+              </div>
+            )}
+
+            {/* Loading State */}
+            {isLoading && (
+              <div className="space-y-3 mb-4">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="animate-pulse">
+                    <div className="bg-gray-200 rounded-lg h-16 w-full"></div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Suggestions */}
+            {!isLoading && suggestions.length > 0 && (
               <motion.div
-                key={`${suggestion.type}-${suggestion.value}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="space-y-3 mb-4"
               >
-                <TagSuggestionItem
-                  suggestion={suggestion}
-                  onApply={(type, value) => {
-                    onApplyTag(type, value);
-                    const tagKey = `${type}:${value}`;
-                    const newAppliedTags = new Set(appliedTags);
-                    newAppliedTags.add(tagKey);
-                    setAppliedTags(newAppliedTags);
-                    setShowGenerateButton(true);
-                  }}
-                  disabled={false}
-                />
+                {/* Apply All Button */}
+                {suggestions.some(s => s.confidence > 0.7) && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex justify-end mb-3"
+                  >
+                    <button
+                      onClick={handleApplyAllHighConfidence}
+                      className="text-xs bg-primary-accent text-white px-3 py-1.5 rounded-full hover:bg-primary-accent/90 transition-colors"
+                    >
+                      高信頼度の提案をすべて適用
+                    </button>
+                  </motion.div>
+                )}
+
+                {/* Suggestion Items */}
+                {suggestions.map((suggestion, index) => (
+                  <motion.div
+                    key={`${suggestion.type}-${suggestion.value}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <TagSuggestionItem
+                      suggestion={suggestion}
+                      onApply={(type, value) => {
+                        onApplyTag(type, value);
+                        const tagKey = `${type}:${value}`;
+                        const newAppliedTags = new Set(appliedTags);
+                        newAppliedTags.add(tagKey);
+                        setAppliedTags(newAppliedTags);
+                        setShowGenerateButton(true);
+                      }}
+                      disabled={false}
+                    />
+                  </motion.div>
+                ))}
               </motion.div>
-            ))}
+            )}
+
+            {/* Empty State */}
+            {!isLoading && !error && suggestions.length === 0 && userInput.trim() && (
+              <div className="text-center py-6 bg-gray-50 rounded-lg border border-gray-200 mb-4">
+                <p className="text-sm text-gray-700 font-medium">このリクエストに適用可能な提案が見つかりませんでした</p>
+              </div>
+            )}
+
+            {/* Generate Button */}
+            {(showGenerateButton || appliedTags.size > 0) && onGenerate && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center"
+              >
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    onGenerate();
+                    setShowGenerateButton(false);
+                    setAppliedTags(new Set());
+                  }}
+                  className="px-6 py-3 bg-primary-accent hover:bg-primary-accent/90 text-white font-medium rounded-xl shadow-lg transition-all duration-200 flex items-center space-x-2 mx-auto"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>このタグで生成</span>
+                </motion.button>
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Empty State */}
-      {!isLoading && !error && suggestions.length === 0 && userInput.trim() && (
-        <div className="text-center py-6 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-sm text-gray-700 font-medium">このリクエストに適用可能な提案が見つかりませんでした</p>
-        </div>
-      )}
-
-      {/* Generate Button */}
-      {(showGenerateButton || appliedTags.size > 0) && onGenerate && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-4 text-center"
-        >
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              onGenerate();
-              setShowGenerateButton(false);
-              setAppliedTags(new Set());
-            }}
-            className="px-6 py-3 bg-primary-accent hover:bg-primary-accent/90 text-white font-medium rounded-xl shadow-lg transition-all duration-200 flex items-center space-x-2 mx-auto"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            <span>このタグで生成</span>
-          </motion.button>
-        </motion.div>
-      )}
     </motion.div>
   );
 }
