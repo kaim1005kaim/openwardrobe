@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Upload, Clock, Sparkles, Palette, CheckCircle } from 'lucide-react';
-import { getLoadingCopy } from '@/lib/loadingCopy';
+import { getSafeLoadingCopy } from '@/lib/loadingCopy';
 
 export type GenerationPhase = 'uploading' | 'queued' | 'generating' | 'rendering' | 'complete';
 
@@ -23,7 +23,7 @@ export function GenerationProgress({ phase, progress, jobId, onCancel }: Generat
   ] as const;
 
   const currentPhaseIndex = phases.findIndex(p => p.key === phase);
-  const loadingMessage = getLoadingCopy(phase);
+  const loadingMessage = getSafeLoadingCopy(phase);
 
   return (
     <div className="bg-surface/30 backdrop-blur-sm rounded-lg border border-surface/50 p-4">

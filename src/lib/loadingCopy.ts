@@ -23,6 +23,11 @@ export const LOADING_COPY = {
     'デザインを磨き上げています...',
     'もうすぐ完成です...'
   ],
+  complete: [
+    '完成しました！',
+    'デザインが完成しました',
+    'すばらしい作品が完成！'
+  ],
   error: [
     '接続に失敗しました',
     '一時的な問題が発生しました',
@@ -34,6 +39,15 @@ export const LOADING_COPY = {
 export function getLoadingCopy(phase: keyof typeof LOADING_COPY): string {
   const copies = LOADING_COPY[phase];
   return copies[Math.floor(Math.random() * copies.length)];
+}
+
+// Safe loading copy function that handles all phases
+export function getSafeLoadingCopy(phase: string): string {
+  const validPhase = phase as keyof typeof LOADING_COPY;
+  if (validPhase in LOADING_COPY) {
+    return getLoadingCopy(validPhase);
+  }
+  return 'Processing...';
 }
 
 // Get copy based on progress percentage
