@@ -8,13 +8,15 @@ import { PromptGenerator } from '@/lib/promptGenerator';
 import { useImageStore } from '@/store/imageStore';
 
 interface GenerateButtonProps {
-  designOptions: DesignOptions;
+  designOptions?: DesignOptions;
   disabled?: boolean;
+  disabledTooltip?: string;
 }
 
-export function GenerateButton({ designOptions, disabled = false }: GenerateButtonProps) {
+export function GenerateButton({ designOptions, disabled = false, disabledTooltip }: GenerateButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
   const [settings, setSettings] = useState<{
     creativityLevel: 'conservative' | 'balanced' | 'experimental' | 'maximum';
     quality: 'standard' | 'high' | 'ultra';
@@ -25,7 +27,10 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
     count: 1
   });
 
-  const { addImage, setGenerating } = useImageStore();
+  const { addImage, setGenerating, currentDesignOptions } = useImageStore();
+  
+  // Use passed designOptions or fall back to store's currentDesignOptions
+  const activeDesignOptions = designOptions || currentDesignOptions;
 
   const handleGenerate = async () => {
     if (isGenerating || disabled) return;
@@ -49,7 +54,7 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
       }
       // Generate multiple images based on count
       const generatePromises = Array.from({ length: settings.count }, async () => {
-        const prompt = PromptGenerator.generatePrompt(designOptions, {
+        const prompt = PromptGenerator.generatePrompt(activeDesignOptions, {
           creativityLevel: settings.creativityLevel,
           includeSeasonalConsistency: true,
           includeColorHarmony: true,
@@ -60,7 +65,7 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
 
         const imageId = await ImageService.generateImage({
           prompt,
-          designOptions,
+          designOptions: activeDesignOptions,
           action: 'generate'
         });
 
@@ -69,7 +74,7 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
           prompt,
           status: 'pending' as const,
           timestamp: new Date(),
-          designOptions,
+          designOptions: activeDesignOptions,
           variations: []
         };
 
@@ -149,7 +154,7 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
   };
 
   const canGenerate = () => {
-    return designOptions.trend || designOptions.colorScheme || designOptions.mood;
+    return activeDesignOptions.trend || activeDesignOptions.colorScheme || activeDesignOptions.mood;
   };
 
   const getButtonText = () => {
@@ -228,12 +233,14 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
       )}
 
       {/* Main Generate Button */}
-      <div className="w-full">
+      <div className="w-full relative">
         <button
           onClick={handleGenerate}
           disabled={!canGenerate() || isGenerating || disabled}
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
           className={`w-full flex items-center justify-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all ${
-            canGenerate() && !isGenerating
+            canGenerate() && !isGenerating && !disabled
               ? 'bg-purple-600 hover:bg-purple-700 text-white'
               : 'bg-gray-600 text-gray-400 cursor-not-allowed'
           }`}
@@ -246,6 +253,16 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
           <span>{getButtonText()}</span>
           {!isGenerating && <Sparkles className="w-4 h-4" />}
         </button>
+        
+        {/* Disabled Tooltip */}
+        {showTooltip && disabled && disabledTooltip && (
+          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap z-10">
+            {disabledTooltip}
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+              <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </div>
+        )}
 
         {/* Settings Button */}
         <button
@@ -264,10 +281,10 @@ export function GenerateButton({ designOptions, disabled = false }: GenerateButt
           <p className="text-sm text-gray-400 mb-2">
             選択された設定:{' '}
             {[
-              designOptions.trend && `${designOptions.trend}トレンド`,
-              designOptions.colorScheme && `${designOptions.colorScheme}カラー`,
-              designOptions.mood && `${designOptions.mood}ムード`,
-              designOptions.season && `${designOptions.season}シーズン`
+              activeDesignOptions.trend && `${activeDesignOptions.trend}トレンド`,
+              activeDesignOptions.colorScheme && `${activeDesignOptions.colorScheme}カラー`,
+              activeDesignOptions.mood && `${activeDesignOptions.mood}ムード`,
+              activeDesignOptions.season && `${activeDesignOptions.season}シーズン`
             ].filter(Boolean).join('、')}
           </p>
         </div>

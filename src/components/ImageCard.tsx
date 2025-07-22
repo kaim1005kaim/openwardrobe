@@ -4,15 +4,18 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Download, Eye, Zap, MoreHorizontal } from 'lucide-react';
 import { GeneratedImage } from '@/lib/types';
+import { getLoadingCopy, getProgressBasedCopy } from '@/lib/loadingCopy';
 
 interface ImageCardProps {
   image: GeneratedImage;
   isFavorite: boolean;
+  isHighlighted?: boolean;
   onImageClick: () => void;
   onToggleFavorite: () => void;
+  onDismissHighlight?: () => void;
 }
 
-export function ImageCard({ image, isFavorite, onImageClick, onToggleFavorite }: ImageCardProps) {
+export function ImageCard({ image, isFavorite, isHighlighted = false, onImageClick, onToggleFavorite, onDismissHighlight }: ImageCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -65,12 +68,19 @@ export function ImageCard({ image, isFavorite, onImageClick, onToggleFavorite }:
   return (
     <motion.div
       layout
-      className="relative group cursor-pointer"
+      className={`relative group cursor-pointer ${
+        isHighlighted ? 'ring-2 ring-primary-accent ring-opacity-60' : ''
+      }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onImageClick}
       whileHover={{ scale: 1.03 }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+      animate={{
+        boxShadow: isHighlighted
+          ? '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(168, 85, 247, 0.2)'
+          : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+      }}
     >
       {/* Main image container */}
       <div className="relative overflow-hidden rounded-2xl bg-surface">
@@ -80,6 +90,38 @@ export function ImageCard({ image, isFavorite, onImageClick, onToggleFavorite }:
             {getStatusText()}
           </div>
         </div>
+
+        {/* Highlight Badge and Dismiss Button */}
+        {isHighlighted && (
+          <>
+            {/* NEW Badge */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="absolute top-3 right-3 z-20"
+            >
+              <div className="bg-primary-accent text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+                NEW
+              </div>
+            </motion.div>
+            
+            {/* Dismiss Highlight Button */}
+            {onDismissHighlight && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDismissHighlight();
+                }}
+                className="absolute top-12 right-3 z-20 w-6 h-6 bg-surface/80 hover:bg-surface rounded-full flex items-center justify-center text-foreground-secondary hover:text-foreground transition-colors"
+                title="ハイライトを消す"
+              >
+                <span className="text-xs">×</span>
+              </motion.button>
+            )}
+          </>
+        )}
 
         {/* Progress bar for in-progress images */}
         {image.status === 'in-progress' && image.progress && (
@@ -129,12 +171,21 @@ export function ImageCard({ image, isFavorite, onImageClick, onToggleFavorite }:
               {image.status === 'pending' || image.status === 'in-progress' ? (
                 <>
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-accent mb-2 mx-auto"></div>
-                  <p className="text-caption text-foreground-secondary">生成中...</p>
+                  <p className="text-caption text-foreground-secondary">
+                    {image.status === 'pending' ? getLoadingCopy('queued') : getLoadingCopy('generating')}
+                  </p>
+                  {image.progress && image.progress > 0 && (
+                    <p className="text-xs text-foreground-secondary/70 mt-1">
+                      {Math.round(image.progress)}%
+                    </p>
+                  )}
                 </>
               ) : (
                 <>
                   <div className="text-2xl mb-2">❌</div>
-                  <p className="text-caption text-foreground-secondary">生成失敗</p>
+                  <p className="text-caption text-foreground-secondary">
+                    {getLoadingCopy('error')}
+                  </p>
                 </>
               )}
             </div>

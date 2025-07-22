@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Masonry from 'react-masonry-css';
 import { GeneratedImage } from '@/lib/types';
 import { ImageCard } from './ImageCard';
+import { useJobStore } from '@/store/jobStore';
 
 interface ImageFeedProps {
   images: GeneratedImage[];
@@ -17,6 +18,8 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
   const [visibleImages, setVisibleImages] = useState<GeneratedImage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { getJobById, highlightJob } = useJobStore();
+  const prevImagesLength = useRef(images.length);
 
   // Grid layout breakpoints (horizontal layout instead of masonry)
   const breakpointColumnsObj = {
@@ -33,6 +36,23 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
     if (images.length > 0) {
       setVisibleImages(images.slice(0, 20)); // Start with first 20 images
     }
+  }, [images]);
+
+  // Auto-scroll to new completed images
+  useEffect(() => {
+    // Check if a new image was added
+    if (images.length > prevImagesLength.current) {
+      const newImages = images.slice(0, images.length - prevImagesLength.current);
+      const completedNewImages = newImages.filter(img => img.status === 'completed');
+      
+      if (completedNewImages.length > 0) {
+        // Scroll to top after a short delay to allow for animation
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 300);
+      }
+    }
+    prevImagesLength.current = images.length;
   }, [images]);
 
   // Infinite scroll handler
@@ -111,8 +131,10 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
                 <ImageCard
                   image={image}
                   isFavorite={favorites.includes(image.id)}
+                  isHighlighted={getJobById(image.id)?.isHighlighted || false}
                   onImageClick={() => onImageClick(image)}
                   onToggleFavorite={() => onToggleFavorite(image.id)}
+                  onDismissHighlight={() => highlightJob(image.id, false)}
                 />
               </motion.div>
             ))}

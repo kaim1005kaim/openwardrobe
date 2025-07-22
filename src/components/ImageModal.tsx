@@ -9,6 +9,7 @@ import { PromptGenerator } from '@/lib/promptGenerator';
 import { extractQuadrantFromImage, downloadImageFromBlob } from '@/lib/imageUtils';
 import { ImageGrid } from '@/components/ImageGrid';
 import { SelectableImageGrid } from '@/components/SelectableImageGrid';
+import { DisabledTooltip } from '@/components/DisabledTooltip';
 
 interface ImageModalProps {
   image: GeneratedImage;
@@ -281,45 +282,69 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-4">生成操作</h3>
                   <div className="space-y-2">
-                    <button
-                      onClick={() => handleAction('regenerate')}
+                    <DisabledTooltip
                       disabled={isLoading}
-                      className="w-full flex items-center space-x-3 px-4 py-3 bg-primary-accent/20 hover:bg-primary-accent/30 text-primary-accent rounded-xl transition-all duration-200 disabled:opacity-50 border border-primary-accent/30"
+                      tooltip="他の操作が完了するまでお待ちください"
+                      position="top"
                     >
-                      <Repeat className="w-4 h-4" />
-                      <span>再生成</span>
-                      {isLoading && selectedAction === 'regenerate' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-accent ml-auto"></div>}
-                    </button>
+                      <button
+                        onClick={() => handleAction('regenerate')}
+                        disabled={isLoading}
+                        className="w-full flex items-center space-x-3 px-4 py-3 bg-primary-accent/20 hover:bg-primary-accent/30 text-primary-accent rounded-xl transition-all duration-200 disabled:opacity-50 border border-primary-accent/30"
+                      >
+                        <Repeat className="w-4 h-4" />
+                        <span>再生成</span>
+                        {isLoading && selectedAction === 'regenerate' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-accent ml-auto"></div>}
+                      </button>
+                    </DisabledTooltip>
                     
-                    <button
-                      onClick={() => handleAction('vary')}
+                    <DisabledTooltip
                       disabled={isLoading}
-                      className="w-full flex items-center space-x-3 px-4 py-3 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-xl transition-all duration-200 disabled:opacity-50 border border-blue-500/30"
+                      tooltip="他の操作が完了するまでお待ちください"
+                      position="top"
                     >
-                      <Sparkles className="w-4 h-4" />
-                      <span>バリエーション</span>
-                      {isLoading && selectedAction === 'vary' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400 ml-auto"></div>}
-                    </button>
+                      <button
+                        onClick={() => handleAction('vary')}
+                        disabled={isLoading}
+                        className="w-full flex items-center space-x-3 px-4 py-3 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-xl transition-all duration-200 disabled:opacity-50 border border-blue-500/30"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        <span>バリエーション</span>
+                        {isLoading && selectedAction === 'vary' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400 ml-auto"></div>}
+                      </button>
+                    </DisabledTooltip>
                     
-                    <button
-                      onClick={() => handleAction('remix')}
+                    <DisabledTooltip
                       disabled={isLoading}
-                      className="w-full flex items-center space-x-3 px-4 py-3 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-xl transition-all duration-200 disabled:opacity-50 border border-green-500/30"
+                      tooltip="他の操作が完了するまでお待ちください"
+                      position="top"
                     >
-                      <Palette className="w-4 h-4" />
-                      <span>リミックス</span>
-                      {isLoading && selectedAction === 'remix' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-400 ml-auto"></div>}
-                    </button>
+                      <button
+                        onClick={() => handleAction('remix')}
+                        disabled={isLoading}
+                        className="w-full flex items-center space-x-3 px-4 py-3 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-xl transition-all duration-200 disabled:opacity-50 border border-green-500/30"
+                      >
+                        <Palette className="w-4 h-4" />
+                        <span>リミックス</span>
+                        {isLoading && selectedAction === 'remix' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-400 ml-auto"></div>}
+                      </button>
+                    </DisabledTooltip>
                     
-                    <button
-                      onClick={() => handleAction('upscale')}
+                    <DisabledTooltip
                       disabled={isLoading}
-                      className="w-full flex items-center space-x-3 px-4 py-3 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 rounded-xl transition-all duration-200 disabled:opacity-50 border border-yellow-500/30"
+                      tooltip="他の操作が完了するまでお待ちください"
+                      position="top"
                     >
-                      <Zap className="w-4 h-4" />
-                      <span>アップスケール</span>
-                      {isLoading && selectedAction === 'upscale' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400 ml-auto"></div>}
-                    </button>
+                      <button
+                        onClick={() => handleAction('upscale')}
+                        disabled={isLoading}
+                        className="w-full flex items-center space-x-3 px-4 py-3 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 rounded-xl transition-all duration-200 disabled:opacity-50 border border-yellow-500/30"
+                      >
+                        <Zap className="w-4 h-4" />
+                        <span>アップスケール</span>
+                        {isLoading && selectedAction === 'upscale' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400 ml-auto"></div>}
+                      </button>
+                    </DisabledTooltip>
                   </div>
                 </div>
               )}
@@ -334,50 +359,68 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
                     </p>
                   )}
                   <div className="space-y-2">
-                    <button
-                      onClick={() => handleAction('subtle')}
-                      disabled={isLoading || !selectedQuadrant}
-                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 border ${
-                        selectedQuadrant 
-                          ? 'bg-surface/50 hover:bg-surface/70 text-foreground border-surface/30' 
-                          : 'bg-surface/20 text-foreground-secondary border-surface/20 cursor-not-allowed'
-                      } disabled:opacity-50`}
+                    <DisabledTooltip
+                      disabled={!selectedQuadrant}
+                      tooltip="画像の象限を選択してください"
+                      position="top"
                     >
-                      <span>📝</span>
-                      <span>Subtle</span>
-                      {selectedQuadrant && <span className="text-xs text-foreground-secondary">({selectedQuadrant})</span>}
-                      {isLoading && selectedAction === 'subtle' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-foreground ml-auto"></div>}
-                    </button>
+                      <button
+                        onClick={() => handleAction('subtle')}
+                        disabled={isLoading || !selectedQuadrant}
+                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 border ${
+                          selectedQuadrant 
+                            ? 'bg-surface/50 hover:bg-surface/70 text-foreground border-surface/30' 
+                            : 'bg-surface/20 text-foreground-secondary border-surface/20 cursor-not-allowed'
+                        } disabled:opacity-50`}
+                      >
+                        <span>📝</span>
+                        <span>Subtle</span>
+                        {selectedQuadrant && <span className="text-xs text-foreground-secondary">({selectedQuadrant})</span>}
+                        {isLoading && selectedAction === 'subtle' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-foreground ml-auto"></div>}
+                      </button>
+                    </DisabledTooltip>
                     
-                    <button
-                      onClick={() => handleAction('strong')}
-                      disabled={isLoading || !selectedQuadrant}
-                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 border ${
-                        selectedQuadrant 
-                          ? 'bg-surface/50 hover:bg-surface/70 text-foreground border-surface/30' 
-                          : 'bg-surface/20 text-foreground-secondary border-surface/20 cursor-not-allowed'
-                      } disabled:opacity-50`}
+                    <DisabledTooltip
+                      disabled={!selectedQuadrant}
+                      tooltip="画像の象限を選択してください"
+                      position="top"
                     >
-                      <span>💪</span>
-                      <span>Strong</span>
-                      {selectedQuadrant && <span className="text-xs text-foreground-secondary">({selectedQuadrant})</span>}
-                      {isLoading && selectedAction === 'strong' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-foreground ml-auto"></div>}
-                    </button>
+                      <button
+                        onClick={() => handleAction('strong')}
+                        disabled={isLoading || !selectedQuadrant}
+                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 border ${
+                          selectedQuadrant 
+                            ? 'bg-surface/50 hover:bg-surface/70 text-foreground border-surface/30' 
+                            : 'bg-surface/20 text-foreground-secondary border-surface/20 cursor-not-allowed'
+                        } disabled:opacity-50`}
+                      >
+                        <span>💪</span>
+                        <span>Strong</span>
+                        {selectedQuadrant && <span className="text-xs text-foreground-secondary">({selectedQuadrant})</span>}
+                        {isLoading && selectedAction === 'strong' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-foreground ml-auto"></div>}
+                      </button>
+                    </DisabledTooltip>
                     
-                    <button
-                      onClick={() => handleAction('animate')}
-                      disabled={isLoading || !selectedQuadrant}
-                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 border ${
-                        selectedQuadrant 
-                          ? 'bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border-orange-500/30' 
-                          : 'bg-surface/20 text-foreground-secondary border-surface/20 cursor-not-allowed'
-                      } disabled:opacity-50`}
+                    <DisabledTooltip
+                      disabled={!selectedQuadrant}
+                      tooltip="画像の象限を選択してください"
+                      position="top"
                     >
-                      <Video className="w-4 h-4" />
-                      <span>動画生成</span>
-                      {selectedQuadrant && <span className="text-xs text-foreground-secondary">({selectedQuadrant})</span>}
-                      {isLoading && selectedAction === 'animate' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-400 ml-auto"></div>}
-                    </button>
+                      <button
+                        onClick={() => handleAction('animate')}
+                        disabled={isLoading || !selectedQuadrant}
+                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 border ${
+                          selectedQuadrant 
+                            ? 'bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border-orange-500/30' 
+                            : 'bg-surface/20 text-foreground-secondary border-surface/20 cursor-not-allowed'
+                        } disabled:opacity-50`}
+                      >
+                        <Video className="w-4 h-4" />
+                        <span>動画生成</span>
+                        {selectedQuadrant && <span className="text-xs text-foreground-secondary">({selectedQuadrant})</span>}
+                        {isLoading && selectedAction === 'animate' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-400 ml-auto"></div>}
+                      </button>
+                    </DisabledTooltip>
                   </div>
                 </div>
               )}

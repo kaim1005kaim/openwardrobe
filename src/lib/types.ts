@@ -94,3 +94,65 @@ export interface PromptSettings {
   aspectRatio: string;
   quality: 'standard' | 'high' | 'ultra';
 }
+
+// Enhanced Job State Management (Phase NOW)
+export type JobStatus = 'idle' | 'submitting' | 'queued' | 'generating' | 'complete' | 'failed' | 'canceled';
+
+export interface GenerationJob {
+  id: string;
+  createdAt: number;
+  params: GenerationParams;
+  status: JobStatus;
+  progress?: number; // 0-1
+  error?: { code: string; message: string; retryCount?: number };
+  images?: GeneratedImage[];
+  isHighlighted?: boolean; // For new completion highlighting
+}
+
+export interface GenerationParams {
+  prompt: string;
+  designOptions: DesignOptions;
+  action?: 'generate' | 'upscale' | 'variation' | 'blend' | 'subtle' | 'strong' | 'animate' | 'regenerate' | 'remix' | 'vary';
+  aiAssistUsed?: boolean;
+  presetId?: string;
+}
+
+// Selection Tags for Summary Bar
+export interface SelectionTag {
+  id: string;
+  label: string;
+  kind: 'style' | 'color' | 'mood' | 'season';
+  value: string;
+}
+
+// Analytics Events
+export interface AnalyticsContext {
+  userAnonId: string;
+  sessionId: string;
+  device: 'desktop' | 'mobile';
+  locale: string;
+}
+
+export interface AnalyticsEvent {
+  event: string;
+  properties: Record<string, any>;
+  context: AnalyticsContext;
+  timestamp: number;
+}
+
+// Network & Retry Queue
+export interface NetworkState {
+  online: boolean;
+  pendingQueue: GenerationJob[];
+  retryQueue: GenerationJob[];
+  lastPing: number;
+}
+
+// Loading States for UI
+export type LoadingPhase = 'uploading' | 'queued' | 'generating' | 'rendering' | 'complete';
+
+export interface LoadingState {
+  phase: LoadingPhase;
+  message: string;
+  progress: number; // 0-1
+}

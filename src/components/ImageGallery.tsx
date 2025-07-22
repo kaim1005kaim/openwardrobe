@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { Heart, Download, Share2, Palette, Sparkles, RotateCcw, Trash2, ExternalLink } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { GeneratedImage } from '@/lib/types';
 import { useImageStore } from '@/store/imageStore';
+import { useJobStore } from '@/store/jobStore';
 import { ImageService } from '@/lib/imageService';
 import { PromptGenerator } from '@/lib/promptGenerator';
 import { ImageGrid } from '@/components/ImageGrid';
@@ -16,12 +18,24 @@ interface ImageGalleryProps {
 
 export function ImageGallery({ images }: ImageGalleryProps) {
   const { toggleFavorite, favorites, removeImage } = useImageStore();
+  const { getJobById, highlightJob } = useJobStore();
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
   
   // Handler for creating image variations
   const onVariation = (image: GeneratedImage, type: 'color' | 'pattern' | 'mood' | 'upscale') => {
     // This handler is defined at ImageCard level
     console.log('Variation requested for image:', image.id, 'type:', type);
+  };
+
+  // Check if an image should be highlighted
+  const isImageHighlighted = (imageId: string): boolean => {
+    const job = getJobById(imageId);
+    return job?.isHighlighted || false;
+  };
+
+  // Handle dismissing highlight
+  const handleDismissHighlight = (imageId: string) => {
+    highlightJob(imageId, false);
   };
 
   const handleImageClick = (image: GeneratedImage) => {
@@ -49,17 +63,21 @@ export function ImageGallery({ images }: ImageGalleryProps) {
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {images.map((image) => (
-          <ImageCard
-            key={image.id}
-            image={image}
-            isFavorite={favorites.includes(image.id)}
-            onToggleFavorite={() => toggleFavorite(image.id)}
-            onRemove={() => removeImage(image.id)}
-            onVariation={(type) => onVariation(image, type)}
-            onClick={() => handleImageClick(image)}
-          />
-        ))}
+        <AnimatePresence>
+          {images.map((image) => (
+            <ImageCard
+              key={image.id}
+              image={image}
+              isFavorite={favorites.includes(image.id)}
+              isHighlighted={isImageHighlighted(image.id)}
+              onToggleFavorite={() => toggleFavorite(image.id)}
+              onRemove={() => removeImage(image.id)}
+              onVariation={(type) => onVariation(image, type)}
+              onClick={() => handleImageClick(image)}
+              onDismissHighlight={() => handleDismissHighlight(image.id)}
+            />
+          ))}
+        </AnimatePresence>
       </div>
       
       {/* Image Modal */}
@@ -77,13 +95,24 @@ export function ImageGallery({ images }: ImageGalleryProps) {
 interface ImageCardProps {
   image: GeneratedImage;
   isFavorite: boolean;
+  isHighlighted: boolean;
   onToggleFavorite: () => void;
   onRemove: () => void;
   onVariation: (type: 'color' | 'pattern' | 'mood' | 'upscale') => void;
   onClick: () => void;
+  onDismissHighlight: () => void;
 }
 
-function ImageCard({ image, isFavorite, onToggleFavorite, onRemove, onVariation, onClick }: ImageCardProps) {
+function ImageCard({ 
+  image, 
+  isFavorite, 
+  isHighlighted, 
+  onToggleFavorite, 
+  onRemove, 
+  onVariation, 
+  onClick, 
+  onDismissHighlight 
+}: ImageCardProps) {
   const [showActions, setShowActions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -275,8 +304,22 @@ function ImageCard({ image, isFavorite, onToggleFavorite, onRemove, onVariation,
   };
 
   return (
-    <div
-      className="bg-gray-700 rounded-lg overflow-hidden hover:bg-gray-600 transition-all cursor-pointer group relative"
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ 
+        opacity: 1, 
+        scale: 1,
+        boxShadow: isHighlighted 
+          ? '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(168, 85, 247, 0.2)' 
+          : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+      }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.3 }}
+      className={`
+        bg-gray-700 rounded-lg overflow-hidden hover:bg-gray-600 transition-all cursor-pointer group relative
+        ${isHighlighted ? 'ring-2 ring-primary-accent ring-opacity-60' : ''}
+      `}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
       onClick={onClick}
@@ -312,8 +355,38 @@ function ImageCard({ image, isFavorite, onToggleFavorite, onRemove, onVariation,
           </div>
         )}
 
+        {/* Highlight Badge and Dismiss Button */}
+        {isHighlighted && (
+          <>
+            {/* NEW Badge */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="absolute top-2 left-2 z-10"
+            >
+              <div className="bg-primary-accent text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+                NEW
+              </div>
+            </motion.div>
+            
+            {/* Dismiss Highlight Button */}
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDismissHighlight();
+              }}
+              className="absolute top-2 right-2 z-10 w-6 h-6 bg-surface/80 hover:bg-surface rounded-full flex items-center justify-center text-foreground-secondary hover:text-foreground transition-colors"
+              title="ハイライトを消す"
+            >
+              <span className="text-xs">×</span>
+            </motion.button>
+          </>
+        )}
+
         {/* Full Image Actions - Only for non-4grid images */}
-        {showActions && image.status === 'completed' && (
+        {showActions && image.status === 'completed' && !isHighlighted && (
           <div className="absolute top-2 right-2 flex space-x-1">
             <button
               onClick={() => image.imageUrl && window.open(image.imageUrl, '_blank')}
@@ -436,6 +509,6 @@ function ImageCard({ image, isFavorite, onToggleFavorite, onRemove, onVariation,
           </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
