@@ -13,7 +13,10 @@ import { ImageFeed } from '@/components/ImageFeed';
 import { ControlDrawer } from '@/components/ControlDrawer';
 import { ImageModal } from '@/components/ImageModal';
 import { SelectionSummaryBar } from '@/components/SelectionSummaryBar';
-import { GeneratedImage } from '@/lib/types';
+import { ProgressCardSkeleton, createLoadingState } from '@/components/ProgressCardSkeleton';
+import { useJobStore } from '@/store/jobStore';
+import { useNetworkStore } from '@/store/networkStore';
+import { GeneratedImage, LoadingPhase } from '@/lib/types';
 
 export default function HomePage() {
   const { 
@@ -26,6 +29,25 @@ export default function HomePage() {
     toggleFavorite,
     favorites
   } = useImageStore();
+  
+  // Job store for progress tracking
+  const { 
+    jobs, 
+    getPendingJobs, 
+    cancelJob,
+    createJob,
+    updateJobStatus
+  } = useJobStore();
+  
+  // Network store for offline queue and auto-retry
+  const { 
+    online, 
+    pendingQueue, 
+    retryQueue, 
+    enqueue,
+    flush,
+    getTotalPendingJobs 
+  } = useNetworkStore();
   
   const [mounted, setMounted] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -154,16 +176,29 @@ export default function HomePage() {
       // AIPromptBar already handles prompt enhancement, so we use the prompt as-is
       console.log('🎨 Submitting prompt:', prompt);
       
+      // Create job in job store
+      const jobId = createJob({
+        prompt: prompt,
+        designOptions: currentDesignOptions,
+        action: 'generate'
+      });
+      
+      // Start the generation process
+      updateJobStatus(jobId, 'submitting');
+      
       // Create image generation request
       const imageId = await ImageService.generateImage({
         prompt: prompt,
         designOptions: currentDesignOptions,
         action: 'generate'
       });
+      
+      // Update job status to queued
+      updateJobStatus(jobId, 'queued');
 
-      // Add to store immediately (optimistic update)
+      // Also add to image store for immediate display (optimistic update)
       const newImage: GeneratedImage = {
-        id: imageId,
+        id: jobId,
         prompt: prompt,
         status: 'pending',
         progress: 0,
@@ -172,14 +207,37 @@ export default function HomePage() {
       };
 
       addImage(newImage);
-      console.log('✅ Image generation started:', imageId);
+      console.log('✅ Image generation started:', jobId);
       
       // Small delay to prevent rapid successive calls
       await new Promise(resolve => setTimeout(resolve, 100));
       
     } catch (error) {
       console.error('❌ Generation failed:', error);
-      alert('Generation failed. Please try again.');
+      
+      // If offline, add to network queue for retry
+      if (!online) {
+        const failedJob: import('@/lib/types').GenerationJob = {
+          id: jobId,
+          createdAt: Date.now(),
+          params: {
+            prompt: prompt,
+            designOptions: currentDesignOptions,
+            action: 'generate' as const
+          },
+          status: 'failed' as const,
+          progress: 0,
+          isHighlighted: false,
+          error: {
+            code: 'NETWORK_ERROR',
+            message: error instanceof Error ? error.message : 'Unknown error'
+          }
+        };
+        enqueue(failedJob);
+        alert('オフラインです。オンラインに戻ったら自動的にリトライされます。');
+      } else {
+        alert('Generation failed. Please try again.');
+      }
     } finally {
       setGenerating(false);
     }
@@ -201,15 +259,68 @@ export default function HomePage() {
         '現在の設定に基づいたファッションデザイン'
       );
 
-      // Submit the generated prompt
-      await handlePromptSubmit(generatedPrompt);
+      // Create job in job store for settings generation
+      const jobId = createJob({
+        prompt: generatedPrompt,
+        designOptions: currentDesignOptions,
+        action: 'generate'
+      });
+      
+      // Start the generation process
+      updateJobStatus(jobId, 'submitting');
+      
+      // Create image generation request
+      const imageId = await ImageService.generateImage({
+        prompt: generatedPrompt,
+        designOptions: currentDesignOptions,
+        action: 'generate'
+      });
+      
+      // Update job status to queued
+      updateJobStatus(jobId, 'queued');
+
+      // Also add to image store for immediate display (optimistic update)
+      const newImage: GeneratedImage = {
+        id: jobId,
+        prompt: generatedPrompt,
+        status: 'pending',
+        progress: 0,
+        timestamp: new Date(),
+        designOptions: currentDesignOptions
+      };
+
+      addImage(newImage);
+      console.log('✅ Settings generation started:', jobId);
       
       // Close drawer after generation
       setIsDrawerOpen(false);
       
     } catch (error) {
       console.error('❌ Settings generation failed:', error);
-      alert('設定からの生成に失敗しました。再度お試しください。');
+      
+      // If offline, add to network queue for retry
+      if (!online) {
+        const failedJob: import('@/lib/types').GenerationJob = {
+          id: jobId,
+          createdAt: Date.now(),
+          params: {
+            prompt: generatedPrompt,
+            designOptions: currentDesignOptions,
+            action: 'generate' as const
+          },
+          status: 'failed' as const,
+          progress: 0,
+          isHighlighted: false,
+          error: {
+            code: 'NETWORK_ERROR',
+            message: error instanceof Error ? error.message : 'Unknown error'
+          }
+        };
+        enqueue(failedJob);
+        alert('オフラインです。オンラインに戻ったら自動的にリトライされます。');
+      } else {
+        alert('設定からの生成に失敗しました。再度お試しください。');
+      }
     }
   };
 
@@ -229,15 +340,68 @@ export default function HomePage() {
       // Generate prompt from preset
       const generatedPrompt = await PresetGenerator.generateFromPreset(preset.id);
 
-      // Submit the generated prompt
-      await handlePromptSubmit(generatedPrompt);
+      // Create job in job store for preset generation
+      const jobId = createJob({
+        prompt: generatedPrompt,
+        designOptions: preset.options,
+        action: 'generate'
+      });
+      
+      // Start the generation process
+      updateJobStatus(jobId, 'submitting');
+      
+      // Create image generation request
+      const imageId = await ImageService.generateImage({
+        prompt: generatedPrompt,
+        designOptions: preset.options,
+        action: 'generate'
+      });
+      
+      // Update job status to queued
+      updateJobStatus(jobId, 'queued');
+
+      // Also add to image store for immediate display (optimistic update)
+      const newImage: GeneratedImage = {
+        id: jobId,
+        prompt: generatedPrompt,
+        status: 'pending',
+        progress: 0,
+        timestamp: new Date(),
+        designOptions: preset.options
+      };
+
+      addImage(newImage);
+      console.log('✅ Preset generation started:', jobId);
       
       // Close drawer after generation
       setIsDrawerOpen(false);
       
     } catch (error) {
       console.error('❌ Preset generation failed:', error);
-      alert('プリセットからの生成に失敗しました。再度お試しください。');
+      
+      // If offline, add to network queue for retry  
+      if (!online) {
+        const failedJob: import('@/lib/types').GenerationJob = {
+          id: jobId,
+          createdAt: Date.now(),
+          params: {
+            prompt: generatedPrompt,
+            designOptions: preset.options,
+            action: 'generate' as const
+          },
+          status: 'failed' as const,
+          progress: 0,
+          isHighlighted: false,
+          error: {
+            code: 'NETWORK_ERROR',
+            message: error instanceof Error ? error.message : 'Unknown error'
+          }
+        };
+        enqueue(failedJob);
+        alert('オフラインです。オンラインに戻ったら自動的にリトライされます。');
+      } else {
+        alert('プリセットからの生成に失敗しました。再度お試しください。');
+      }
     }
   };
 
@@ -273,6 +437,25 @@ export default function HomePage() {
   const sortedImages = [...images].sort((a, b) => 
     new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
+  
+  // Get pending jobs with loading states
+  const pendingJobs = getPendingJobs();
+  
+  // Convert job status to loading phase
+  const getLoadingPhaseFromJobStatus = (status: string): LoadingPhase => {
+    switch (status) {
+      case 'idle':
+      case 'submitting': return 'uploading';
+      case 'queued': return 'queued';
+      case 'generating': return 'generating';
+      default: return 'rendering';
+    }
+  };
+  
+  // Handle job cancellation
+  const handleCancelJob = (jobId: string) => {
+    cancelJob(jobId);
+  };
 
   if (!mounted) {
     return (
@@ -319,6 +502,13 @@ export default function HomePage() {
                 <div className="w-2 h-2 bg-pink-400 rounded-full"></div>
                 <span>{favorites.length} お気に入り</span>
               </div>
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${online ? 'bg-green-400' : 'bg-red-400'}`}></div>
+                <span>{online ? 'オンライン' : 'オフライン'}</span>
+                {getTotalPendingJobs() > 0 && (
+                  <span className="text-yellow-400">({getTotalPendingJobs()} 待機中)</span>
+                )}
+              </div>
             </motion.div>
           </div>
         </div>
@@ -346,6 +536,45 @@ export default function HomePage() {
 
       {/* Main Content */}
       <main className="pt-36 relative z-10" data-tutorial="image-feed">
+        {/* Progress Cards for Active Jobs */}
+        {pendingJobs.length > 0 && (
+          <div className="px-8 pb-6">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
+            >
+              <h2 className="text-sm font-medium text-foreground-secondary">
+                生成中 ({pendingJobs.length})
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <AnimatePresence mode="popLayout">
+                  {pendingJobs.map((job) => (
+                    <motion.div
+                      key={job.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <ProgressCardSkeleton
+                        loadingState={createLoadingState(
+                          getLoadingPhaseFromJobStatus(job.status),
+                          job.progress
+                        )}
+                        jobId={job.id}
+                        prompt={job.params.prompt}
+                        onCancel={() => handleCancelJob(job.id)}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          </div>
+        )}
+        
         <ImageFeed
           images={sortedImages}
           onImageClick={setSelectedImage}
