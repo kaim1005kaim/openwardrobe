@@ -62,6 +62,18 @@ export const useImageStore = create<ImageStore>()(
             )
           };
         }
+
+        // Check for similar pending images with same prompt to prevent duplicates
+        const similarPendingImage = state.images.find(img => 
+          img.prompt === image.prompt && 
+          (img.status === 'pending' || img.status === 'in-progress') &&
+          img.id !== image.id
+        );
+
+        if (similarPendingImage && image.status === 'pending') {
+          console.log(`Preventing duplicate pending image. Similar image exists: ${similarPendingImage.id}`);
+          return state; // Don't add duplicate pending image
+        }
         
         // Save to persistent storage if user is authenticated
         if (typeof window !== 'undefined') {

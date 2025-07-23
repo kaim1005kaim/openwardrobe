@@ -53,6 +53,17 @@ export const useJobStore = create<JobStore>()(
 
         // Actions
         createJob: (params: GenerationParams) => {
+          // Check for duplicate pending jobs with same prompt
+          const existingJob = get().jobs.find(job => 
+            job.params.prompt === params.prompt && 
+            (job.status === 'idle' || job.status === 'submitting' || job.status === 'queued' || job.status === 'generating')
+          );
+
+          if (existingJob) {
+            console.log(`Duplicate job prevented. Existing job: ${existingJob.id} with status: ${existingJob.status}`);
+            return existingJob.id;
+          }
+
           const jobId = `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           const newJob: GenerationJob = {
             id: jobId,
@@ -135,6 +146,11 @@ export const useJobStore = create<JobStore>()(
 
             const newJobs = [...state.jobs];
             newJobs[jobIndex] = updatedJob;
+
+            // Auto-remove completed job after 3 seconds to prevent UI clutter
+            setTimeout(() => {
+              get().removeJob(jobId);
+            }, 3000);
 
             return {
               jobs: newJobs,

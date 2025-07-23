@@ -172,6 +172,17 @@ export default function HomePage() {
       return;
     }
     
+    // Check for existing pending jobs with same prompt
+    const existingPendingJob = jobs.find(job => 
+      job.params.prompt === prompt && 
+      (job.status === 'idle' || job.status === 'submitting' || job.status === 'queued' || job.status === 'generating')
+    );
+
+    if (existingPendingJob) {
+      console.warn('⚠️ Job with same prompt already in progress:', existingPendingJob.id);
+      return;
+    }
+    
     setGenerating(true);
     
     // Create job in job store (outside try block so it's accessible in catch)
