@@ -3,16 +3,14 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-import * as Sentry from '@sentry/nextjs';
+// import * as Sentry from '@sentry/nextjs';
 
 const prisma = new PrismaClient();
 
 // Input validation schema
 const VaryRequestSchema = z.object({
   imageUrl: z.string().url('有効な画像URLを指定してください'),
-  variationType: z.enum(['subtle', 'strong'], {
-    errorMap: () => ({ message: 'variationTypeは "subtle" または "strong" を指定してください' })
-  }).optional().default('subtle'),
+  variationType: z.enum(['subtle', 'strong']).optional().default('subtle'),
   prompt: z.string().optional(),
   ref: z.string().optional()
 });
@@ -56,11 +54,11 @@ export async function POST(req: NextRequest) {
       validatedData = VaryRequestSchema.parse(body);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.log('❌ [Vary API] Validation error:', error.errors);
+        console.log('❌ [Vary API] Validation error:', error.issues);
         return NextResponse.json(
           { 
             error: 'リクエストが無効です', 
-            details: error.errors.map(e => ({
+            details: error.issues.map(e => ({
               field: e.path.join('.'),
               message: e.message
             }))
@@ -77,7 +75,7 @@ export async function POST(req: NextRequest) {
     const mjToken = process.env.MIDJOURNEY_API_TOKEN;
     if (!mjToken) {
       console.error('❌ [Vary API] MIDJOURNEY_API_TOKEN not configured');
-      Sentry.captureException(new Error('MIDJOURNEY_API_TOKEN not configured'));
+      // Sentry.captureException(new Error('MIDJOURNEY_API_TOKEN not configured'));
       return NextResponse.json(
         { error: 'APIトークンが設定されていません' },
         { status: 500 }
@@ -119,7 +117,7 @@ export async function POST(req: NextRequest) {
 
     if (!mjResponse.ok) {
       console.error('❌ [Vary API] Midjourney API error:', mjData);
-      Sentry.captureException(new Error(`Midjourney API error: ${mjData.error || mjResponse.statusText}`));
+      // Sentry.captureException(new Error(`Midjourney API error: ${mjData.error || mjResponse.statusText}`));
       
       return NextResponse.json(
         { 
@@ -140,26 +138,27 @@ export async function POST(req: NextRequest) {
 
     // Save job to database
     try {
-      const job = await prisma.job.create({
+      const job = await prisma.generationJob.create({
         data: {
           id: mjData.messageId,
           userId: session.user.id,
-          prompt: prompt || `Variation of ${imageUrl}`,
-          status: 'queued',
-          progress: 0,
-          action: 'vary',
-          parameters: {
+          params: {
+            prompt: prompt || `Variation of ${imageUrl}`,
+            action: 'vary',
+            designOptions: {},
             sourceImageUrl: imageUrl,
             variationType: variationType,
             originalPrompt: prompt
-          }
+          },
+          status: 'queued',
+          progress: 0
         }
       });
 
       console.log('✅ [Vary API] Job created:', job.id);
     } catch (dbError) {
       console.error('❌ [Vary API] Database error:', dbError);
-      Sentry.captureException(dbError);
+      // Sentry.captureException(dbError);
       // Continue anyway - the job was submitted to Midjourney
     }
 
@@ -172,7 +171,7 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('❌ [Vary API] Unexpected error:', error);
-    Sentry.captureException(error);
+    // Sentry.captureException(error);
     
     return NextResponse.json(
       { error: 'サーバーエラーが発生しました' },

@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-import * as Sentry from '@sentry/nextjs';
+// import * as Sentry from '@sentry/nextjs';
 
 const prisma = new PrismaClient();
 
@@ -60,11 +60,11 @@ export async function POST(req: NextRequest) {
       validatedData = BlendRequestSchema.parse(body);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.log('❌ [Blend API] Validation error:', error.errors);
+        console.log('❌ [Blend API] Validation error:', error.issues);
         return NextResponse.json(
           { 
             error: 'リクエストが無効です', 
-            details: error.errors.map(e => ({
+            details: error.issues.map(e => ({
               field: e.path.join('.'),
               message: e.message
             }))
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     const mjToken = process.env.MIDJOURNEY_API_TOKEN;
     if (!mjToken) {
       console.error('❌ [Blend API] MIDJOURNEY_API_TOKEN not configured');
-      Sentry.captureException(new Error('MIDJOURNEY_API_TOKEN not configured'));
+      // Sentry.captureException(new Error('MIDJOURNEY_API_TOKEN not configured'));
       return NextResponse.json(
         { error: 'APIトークンが設定されていません' },
         { status: 500 }
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
 
     if (!mjResponse.ok) {
       console.error('❌ [Blend API] Midjourney API error:', mjData);
-      Sentry.captureException(new Error(`Midjourney API error: ${mjData.error || mjResponse.statusText}`));
+      // Sentry.captureException(new Error(`Midjourney API error: ${mjData.error || mjResponse.statusText}`));
       
       return NextResponse.json(
         { 
@@ -152,26 +152,27 @@ export async function POST(req: NextRequest) {
 
     // Save job to database
     try {
-      const job = await prisma.job.create({
+      const job = await prisma.generationJob.create({
         data: {
           id: mjData.messageId,
           userId: session.user.id,
-          prompt: prompt || `Blend of ${imageUrls.length} images`,
-          status: 'queued',
-          progress: 0,
-          action: 'blend',
-          parameters: {
+          params: {
+            prompt: prompt || `Blend of ${imageUrls.length} images`,
+            action: 'blend',
+            designOptions: {},
             sourceImageUrls: imageUrls,
             weights: weights,
             originalPrompt: prompt
-          }
+          },
+          status: 'queued',
+          progress: 0
         }
       });
 
       console.log('✅ [Blend API] Job created:', job.id);
     } catch (dbError) {
       console.error('❌ [Blend API] Database error:', dbError);
-      Sentry.captureException(dbError);
+      // Sentry.captureException(dbError);
       // Continue anyway - the job was submitted to Midjourney
     }
 
@@ -184,7 +185,7 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('❌ [Blend API] Unexpected error:', error);
-    Sentry.captureException(error);
+    // Sentry.captureException(error);
     
     return NextResponse.json(
       { error: 'サーバーエラーが発生しました' },

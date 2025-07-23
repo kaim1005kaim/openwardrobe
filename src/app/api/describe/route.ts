@@ -2,14 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { z } from 'zod';
-import * as Sentry from '@sentry/nextjs';
+// import * as Sentry from '@sentry/nextjs';
 
 // Input validation schema
 const DescribeRequestSchema = z.object({
   imageUrl: z.string().url('有効な画像URLを指定してください'),
-  language: z.enum(['en', 'ja'], {
-    errorMap: () => ({ message: 'languageは "en" または "ja" を指定してください' })
-  }).optional().default('ja')
+  language: z.enum(['en', 'ja']).optional().default('ja')
 });
 
 type DescribeRequest = z.infer<typeof DescribeRequestSchema>;
@@ -84,8 +82,8 @@ async function translatePrompts(prompts: string[], targetLang: 'ja' | 'en'): Pro
     // Parse numbered list back to array
     const translated = translatedText
       .split('\n')
-      .filter(line => line.trim())
-      .map(line => line.replace(/^\d+\.\s*/, '').trim());
+      .filter((line: string) => line.trim())
+      .map((line: string) => line.replace(/^\d+\.\s*/, '').trim());
 
     return translated.length === prompts.length ? translated : prompts;
   } catch (error) {
@@ -120,11 +118,11 @@ export async function POST(req: NextRequest) {
       validatedData = DescribeRequestSchema.parse(body);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.log('❌ [Describe API] Validation error:', error.errors);
+        console.log('❌ [Describe API] Validation error:', error.issues);
         return NextResponse.json(
           { 
             error: 'リクエストが無効です', 
-            details: error.errors.map(e => ({
+            details: error.issues.map(e => ({
               field: e.path.join('.'),
               message: e.message
             }))
@@ -141,7 +139,7 @@ export async function POST(req: NextRequest) {
     const mjToken = process.env.MIDJOURNEY_API_TOKEN;
     if (!mjToken) {
       console.error('❌ [Describe API] MIDJOURNEY_API_TOKEN not configured');
-      Sentry.captureException(new Error('MIDJOURNEY_API_TOKEN not configured'));
+      // Sentry.captureException(new Error('MIDJOURNEY_API_TOKEN not configured'));
       return NextResponse.json(
         { error: 'APIトークンが設定されていません' },
         { status: 500 }
@@ -170,7 +168,7 @@ export async function POST(req: NextRequest) {
 
     if (!mjResponse.ok) {
       console.error('❌ [Describe API] Midjourney API error:', mjData);
-      Sentry.captureException(new Error(`Midjourney API error: ${mjData.error || mjResponse.statusText}`));
+      // Sentry.captureException(new Error(`Midjourney API error: ${mjData.error || mjResponse.statusText}`));
       
       return NextResponse.json(
         { 
@@ -217,7 +215,7 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('❌ [Describe API] Unexpected error:', error);
-    Sentry.captureException(error);
+    // Sentry.captureException(error);
     
     return NextResponse.json(
       { error: 'サーバーエラーが発生しました' },
