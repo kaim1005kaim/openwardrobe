@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Download, Share2, Heart, Palette, Sparkles, RotateCcw, Play, Repeat, Zap, Video } from 'lucide-react';
+import { X, Download, Share2, Heart, Palette, Sparkles, RotateCcw, Play, Repeat, Zap, Video, Edit3 } from 'lucide-react';
 import { GeneratedImage } from '@/lib/types';
 import { useImageStore } from '@/store/imageStore';
 import { ImageService } from '@/lib/imageService';
@@ -11,6 +11,7 @@ import { extractQuadrantFromImage, downloadImageFromBlob } from '@/lib/imageUtil
 import { ImageGrid } from '@/components/ImageGrid';
 import { SelectableImageGrid } from '@/components/SelectableImageGrid';
 import { DisabledTooltip } from '@/components/DisabledTooltip';
+import { ImageEditPanel } from '@/components/ImageEditPanel';
 
 interface ImageModalProps {
   image: GeneratedImage;
@@ -22,7 +23,9 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [selectedQuadrant, setSelectedQuadrant] = useState<number | null>(null);
-  const { toggleFavorite, favorites, removeImage } = useImageStore();
+  const [showEditPanel, setShowEditPanel] = useState(false);
+  const [generatedPrompts, setGeneratedPrompts] = useState<string[]>([]);
+  const { toggleFavorite, favorites, removeImage, addImage } = useImageStore();
   const isFavorite = favorites.includes(image.id);
 
   // ESCキーでモーダルを閉じる
@@ -116,6 +119,25 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
       setIsLoading(false);
       setSelectedAction(null);
     }
+  };
+
+  const handleEditStart = (operation: string, jobId: string) => {
+    console.log(`🎨 Edit operation started: ${operation}, jobId: ${jobId}`);
+    // Create optimistic image entry
+    const newImage = {
+      id: jobId,
+      prompt: `${operation} of ${image.prompt}`,
+      status: 'pending' as const,
+      timestamp: new Date(),
+      designOptions: image.designOptions
+    };
+    addImage(newImage);
+    setShowEditPanel(false);
+  };
+
+  const handleDescribeResult = (descriptions: string[]) => {
+    setGeneratedPrompts(descriptions);
+    console.log('📝 Generated prompts:', descriptions);
   };
 
   const handleQuadrantDownload = async (quadrant: number) => {
@@ -274,6 +296,18 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
                   >
                     <Share2 className="w-4 h-4" />
                     <span>共有</span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowEditPanel(!showEditPanel)}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 border ${
+                      showEditPanel 
+                        ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border-blue-500/30' 
+                        : 'bg-surface/50 hover:bg-surface/70 text-foreground-secondary border-surface/30'
+                    }`}
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    <span>{showEditPanel ? '編集パネルを閉じる' : '高度な編集'}</span>
                   </button>
                 </div>
               </div>
@@ -464,6 +498,50 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
                   )}
                 </div>
               </div>
+
+              {/* Advanced Edit Panel */}
+              {showEditPanel && image.status === 'completed' && (
+                <div>
+                  <ImageEditPanel
+                    image={image}
+                    onEditStart={handleEditStart}
+                    onDescribe={handleDescribeResult}
+                    className="border border-blue-500/30"
+                  />
+                </div>
+              )}
+
+              {/* Generated Prompts Display */}
+              {generatedPrompts.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-4">生成されたプロンプト</h3>
+                  <div className="space-y-2">
+                    {generatedPrompts.map((prompt, index) => (
+                      <div
+                        key={index}
+                        className="p-3 bg-surface/30 rounded-xl border border-surface/20 text-sm text-foreground"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <span className="text-xs text-foreground-secondary">オプション {index + 1}</span>
+                          <button
+                            onClick={() => navigator.clipboard.writeText(prompt)}
+                            className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                          >
+                            コピー
+                          </button>
+                        </div>
+                        <p className="leading-relaxed">{prompt}</p>
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => setGeneratedPrompts([])}
+                      className="w-full text-sm text-foreground-secondary hover:text-foreground transition-colors mt-2"
+                    >
+                      プロンプトを非表示
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Danger Zone */}
               <div>
