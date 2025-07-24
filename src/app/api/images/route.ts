@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const tags = searchParams.get("tags")?.split(",").filter(Boolean) || [];
     const status = searchParams.get("status") || undefined;
-    const userId = searchParams.get("userId") || session?.user?.id;
+    const userIdParam = searchParams.get("userId");
+    const userId = userIdParam === "current" ? session?.user?.id : (userIdParam || session?.user?.id);
 
     // Calculate offset for pagination
     const offset = (page - 1) * limit;

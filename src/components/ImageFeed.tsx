@@ -52,6 +52,7 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
       const userResponse = await fetch('/api/images?userId=current');
       if (userResponse.ok) {
         const userData = await userResponse.json();
+        console.log('User images data:', userData);
         setUserImages(userData.images || []);
       }
 
@@ -59,7 +60,22 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
       const favResponse = await fetch('/api/favorites');
       if (favResponse.ok) {
         const favData = await favResponse.json();
-        setFavoriteImages(favData.favorites?.map((fav: any) => fav.image) || []);
+        console.log('Favorites data:', favData);
+        // Transform the favorites data to GeneratedImage format
+        const favoriteImages = favData.favorites?.map((fav: any) => {
+          const image = fav.image;
+          return {
+            id: image.id,
+            prompt: image.prompt,
+            imageUrl: image.imageUrl,
+            status: image.status,
+            timestamp: new Date(image.createdAt),
+            designOptions: image.designOptions || {},
+            upscaledUrls: image.upscaledUrls || [],
+            tags: image.tags || []
+          };
+        }) || [];
+        setFavoriteImages(favoriteImages);
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -93,6 +109,13 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
       fetchUserData();
     }
   }, [isAuthenticated]);
+
+  // Refetch data when favorites change
+  useEffect(() => {
+    if (isAuthenticated && favorites.length > 0) {
+      fetchUserData();
+    }
+  }, [favorites.length, isAuthenticated]);
 
   // Initialize visible images
   useEffect(() => {
@@ -131,7 +154,7 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [visibleImages.length, images.length]);
+  }, [visibleImages.length, filteredImages.length]);
 
   const loadMoreImages = () => {
     if (isLoading || visibleImages.length >= filteredImages.length) return;
@@ -151,13 +174,13 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
     switch (currentFilter) {
       case 'favorites':
         return {
-          icon: '❤️',
+          icon: '✨',
           title: 'お気に入りがありません',
-          description: 'ハートボタンをクリックしてお気に入りに追加してみましょう！'
+          description: 'お気に入りに追加してみましょう！'
         };
       case 'history':
         return {
-          icon: '📜',
+          icon: '✨',
           title: 'あなたの作品がありません',
           description: '最初のファッションデザインを作成してみましょう！'
         };
