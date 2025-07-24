@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Heart, Download, Share2, Palette, Sparkles, RotateCcw, Trash2, ExternalLink, History } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Heart, Download, Share2, Palette, Sparkles, RotateCcw, Trash2, ExternalLink, History, Grid3X3, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GeneratedImage } from '@/lib/types';
 import { useImageStore } from '@/store/imageStore';
@@ -99,23 +99,34 @@ export function ImageGallery({ images }: ImageGalleryProps) {
         )}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        <AnimatePresence>
-          {images.map((image) => (
-            <ImageCard
-              key={image.id}
-              image={image}
-              isFavorite={favorites.includes(image.id)}
-              isHighlighted={isImageHighlighted(image.id)}
-              onToggleFavorite={() => toggleFavorite(image.id)}
-              onRemove={() => removeImage(image.id)}
-              onVariation={(type) => onVariation(image, type)}
-              onClick={() => handleImageClick(image)}
-              onDismissHighlight={() => handleDismissHighlight(image.id)}
-            />
-          ))}
-        </AnimatePresence>
-      </div>
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+          <span className="ml-3 text-gray-600">読み込み中...</span>
+        </div>
+      )}
+      
+      {/* Gallery Grid */}
+      {!isLoading && (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          <AnimatePresence>
+            {filteredImages.map((image) => (
+              <ImageCard
+                key={image.id}
+                image={image}
+                isFavorite={favorites.includes(image.id)}
+                isHighlighted={isImageHighlighted(image.id)}
+                onToggleFavorite={() => toggleFavorite(image.id)}
+                onRemove={() => removeImage(image.id)}
+                onVariation={(type) => onVariation(image, type)}
+                onClick={() => handleImageClick(image)}
+                onDismissHighlight={() => handleDismissHighlight(image.id)}
+              />
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
       
       {/* Image Modal */}
       {selectedImage && (
