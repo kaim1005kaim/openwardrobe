@@ -7,7 +7,6 @@ import { GeneratedImage } from '@/lib/types';
 import { ImageCard } from './ImageCard';
 import { useJobStore } from '@/store/jobStore';
 import { useAuth } from '@/hooks/useAuth';
-import { Heart, Grid3X3, User } from 'lucide-react';
 
 type GalleryFilter = 'all' | 'favorites' | 'history';
 
@@ -175,56 +174,62 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
     const emptyState = getEmptyStateContent();
     return (
       <div>
-        {/* Filter Tabs */}
+        {/* Filter Tabs - Minimal Design */}
         {isAuthenticated && (
           <div className="flex items-center justify-center mb-8">
-            <div className="flex items-center gap-1 p-1 bg-surface-secondary rounded-lg">
+            <div className="flex items-center gap-8">
               <button
                 onClick={() => setCurrentFilter('all')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`relative pb-2 text-sm font-medium transition-colors ${
                   currentFilter === 'all'
-                    ? 'bg-surface text-foreground shadow-sm'
+                    ? 'text-foreground'
                     : 'text-foreground-secondary hover:text-foreground'
                 }`}
               >
-                <Grid3X3 size={16} />
                 すべて
-                {currentFilter === 'all' && images.length > 0 && (
-                  <span className="px-2 py-1 text-xs bg-surface-secondary text-foreground-secondary rounded-full">
+                {images.length > 0 && (
+                  <span className="ml-2 text-xs text-foreground-secondary">
                     {images.length}
                   </span>
+                )}
+                {currentFilter === 'all' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
                 )}
               </button>
               <button
                 onClick={() => setCurrentFilter('history')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`relative pb-2 text-sm font-medium transition-colors ${
                   currentFilter === 'history'
-                    ? 'bg-surface text-foreground shadow-sm'
+                    ? 'text-foreground'
                     : 'text-foreground-secondary hover:text-foreground'
                 }`}
               >
-                <User size={16} />
                 私の作品
-                {currentFilter === 'history' && userImages.length > 0 && (
-                  <span className="px-2 py-1 text-xs bg-surface-secondary text-foreground-secondary rounded-full">
+                {userImages.length > 0 && (
+                  <span className="ml-2 text-xs text-foreground-secondary">
                     {userImages.length}
                   </span>
+                )}
+                {currentFilter === 'history' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
                 )}
               </button>
               <button
                 onClick={() => setCurrentFilter('favorites')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`relative pb-2 text-sm font-medium transition-colors ${
                   currentFilter === 'favorites'
-                    ? 'bg-surface text-foreground shadow-sm'
+                    ? 'text-foreground'
                     : 'text-foreground-secondary hover:text-foreground'
                 }`}
               >
-                <Heart size={16} />
                 お気に入り
-                {currentFilter === 'favorites' && favoriteImages.length > 0 && (
-                  <span className="px-2 py-1 text-xs bg-surface-secondary text-foreground-secondary rounded-full">
+                {favoriteImages.length > 0 && (
+                  <span className="ml-2 text-xs text-foreground-secondary">
                     {favoriteImages.length}
                   </span>
+                )}
+                {currentFilter === 'favorites' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
                 )}
               </button>
             </div>
@@ -259,56 +264,62 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
 
   return (
     <div className="relative">
-      {/* Filter Tabs */}
+      {/* Filter Tabs - Minimal Design */}
       {isAuthenticated && (
-        <div className="flex items-center justify-center pt-6 mb-4">
-          <div className="flex items-center gap-1 p-1 bg-surface-secondary rounded-lg">
+        <div className="flex items-center justify-center pt-6 mb-8">
+          <div className="flex items-center gap-8">
             <button
               onClick={() => setCurrentFilter('all')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`relative pb-2 text-sm font-medium transition-colors ${
                 currentFilter === 'all'
-                  ? 'bg-surface text-foreground shadow-sm'
+                  ? 'text-foreground'
                   : 'text-foreground-secondary hover:text-foreground'
               }`}
             >
-              <Grid3X3 size={16} />
               すべて
-              {currentFilter === 'all' && images.length > 0 && (
-                <span className="px-2 py-1 text-xs bg-surface-secondary text-foreground-secondary rounded-full">
+              {images.length > 0 && (
+                <span className="ml-2 text-xs text-foreground-secondary">
                   {images.length}
                 </span>
+              )}
+              {currentFilter === 'all' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
               )}
             </button>
             <button
               onClick={() => setCurrentFilter('history')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`relative pb-2 text-sm font-medium transition-colors ${
                 currentFilter === 'history'
-                  ? 'bg-surface text-foreground shadow-sm'
+                  ? 'text-foreground'
                   : 'text-foreground-secondary hover:text-foreground'
               }`}
             >
-              <User size={16} />
               私の作品
-              {currentFilter === 'history' && userImages.length > 0 && (
-                <span className="px-2 py-1 text-xs bg-surface-secondary text-foreground-secondary rounded-full">
+              {userImages.length > 0 && (
+                <span className="ml-2 text-xs text-foreground-secondary">
                   {userImages.length}
                 </span>
+              )}
+              {currentFilter === 'history' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
               )}
             </button>
             <button
               onClick={() => setCurrentFilter('favorites')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`relative pb-2 text-sm font-medium transition-colors ${
                 currentFilter === 'favorites'
-                  ? 'bg-surface text-foreground shadow-sm'
+                  ? 'text-foreground'
                   : 'text-foreground-secondary hover:text-foreground'
               }`}
             >
-              <Heart size={16} />
               お気に入り
-              {currentFilter === 'favorites' && favoriteImages.length > 0 && (
-                <span className="px-2 py-1 text-xs bg-surface-secondary text-foreground-secondary rounded-full">
+              {favoriteImages.length > 0 && (
+                <span className="ml-2 text-xs text-foreground-secondary">
                   {favoriteImages.length}
                 </span>
+              )}
+              {currentFilter === 'favorites' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
               )}
             </button>
           </div>
@@ -375,8 +386,8 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
             </motion.div>
           )}
           </AnimatePresence>
+          </div>
         </div>
-      </div>
       )}
 
       {/* Scroll to top button */}
