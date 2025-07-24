@@ -6,6 +6,10 @@ import Masonry from 'react-masonry-css';
 import { GeneratedImage } from '@/lib/types';
 import { ImageCard } from './ImageCard';
 import { useJobStore } from '@/store/jobStore';
+import { useAuth } from '@/hooks/useAuth';
+import { Heart, Grid3X3, User } from 'lucide-react';
+
+type GalleryFilter = 'all' | 'favorites' | 'history';
 
 interface ImageFeedProps {
   images: GeneratedImage[];
@@ -19,7 +23,15 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
   const [isLoading, setIsLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const { getJobById, highlightJob } = useJobStore();
+  const { isAuthenticated } = useAuth();
   const prevImagesLength = useRef(images.length);
+  
+  // Filter state
+  const [currentFilter, setCurrentFilter] = useState<GalleryFilter>('all');
+  const [filteredImages, setFilteredImages] = useState<GeneratedImage[]>(images);
+  const [userImages, setUserImages] = useState<GeneratedImage[]>([]);
+  const [favoriteImages, setFavoriteImages] = useState<GeneratedImage[]>([]);
+  const [filterLoading, setFilterLoading] = useState(false);
 
   // Grid layout breakpoints (horizontal layout instead of masonry)
   const breakpointColumnsObj = {
@@ -31,12 +43,64 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
     640: 1
   };
 
+  // Fetch user-specific data
+  const fetchUserData = async () => {
+    if (!isAuthenticated) return;
+    
+    setFilterLoading(true);
+    try {
+      // Fetch user's images
+      const userResponse = await fetch('/api/images?userId=current');
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        setUserImages(userData.images || []);
+      }
+
+      // Fetch user's favorites
+      const favResponse = await fetch('/api/favorites');
+      if (favResponse.ok) {
+        const favData = await favResponse.json();
+        setFavoriteImages(favData.favorites?.map((fav: any) => fav.image) || []);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setFilterLoading(false);
+    }
+  };
+
+  // Update filtered images based on current filter
+  useEffect(() => {
+    let sourceImages: GeneratedImage[];
+    switch (currentFilter) {
+      case 'favorites':
+        sourceImages = favoriteImages;
+        break;
+      case 'history':
+        sourceImages = userImages;
+        break;
+      case 'all':
+      default:
+        sourceImages = images;
+        break;
+    }
+    setFilteredImages(sourceImages);
+    setVisibleImages(sourceImages.slice(0, 20)); // Reset visible images for new filter
+  }, [currentFilter, images, userImages, favoriteImages]);
+
+  // Fetch user data when component mounts or authentication changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUserData();
+    }
+  }, [isAuthenticated]);
+
   // Initialize visible images
   useEffect(() => {
-    if (images.length > 0) {
-      setVisibleImages(images.slice(0, 20)); // Start with first 20 images
+    if (filteredImages.length > 0) {
+      setVisibleImages(filteredImages.slice(0, 20)); // Start with first 20 images
     }
-  }, [images]);
+  }, [filteredImages]);
 
   // Auto-scroll to new completed images
   useEffect(() => {
@@ -71,49 +135,202 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
   }, [visibleImages.length, images.length]);
 
   const loadMoreImages = () => {
-    if (isLoading || visibleImages.length >= images.length) return;
+    if (isLoading || visibleImages.length >= filteredImages.length) return;
 
     setIsLoading(true);
     
     // Simulate loading delay for smooth UX
     setTimeout(() => {
-      const nextImages = images.slice(visibleImages.length, visibleImages.length + 10);
+      const nextImages = filteredImages.slice(visibleImages.length, visibleImages.length + 10);
       setVisibleImages(prev => [...prev, ...nextImages]);
       setIsLoading(false);
     }, 300);
   };
 
-  if (images.length === 0) {
+  // Empty state content based on filter
+  const getEmptyStateContent = () => {
+    switch (currentFilter) {
+      case 'favorites':
+        return {
+          icon: '❤️',
+          title: 'お気に入りがありません',
+          description: 'ハートボタンをクリックしてお気に入りに追加してみましょう！'
+        };
+      case 'history':
+        return {
+          icon: '📜',
+          title: 'あなたの作品がありません',
+          description: '最初のファッションデザインを作成してみましょう！'
+        };
+      default:
+        return {
+          icon: '✨',
+          title: '創造の始まり',
+          description: '下のプロンプトバーにアイデアを入力して、'
+        };
+    }
+  };
+
+  if (filteredImages.length === 0 && !filterLoading) {
+    const emptyState = getEmptyStateContent();
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-md"
-        >
-          <div className="text-8xl mb-8 opacity-40">✨</div>
-          <h2 className="text-h2 font-semibold text-foreground mb-4">
-            創造の始まり
-          </h2>
-          <p className="text-body text-foreground-secondary leading-relaxed">
-            下のプロンプトバーにアイデアを入力して、<br />
-            AIがあなたのビジョンを美しいファッションデザインに変換します
-          </p>
-        </motion.div>
+      <div>
+        {/* Filter Tabs */}
+        {isAuthenticated && (
+          <div className="flex items-center justify-center mb-8">
+            <div className="flex items-center gap-1 p-1 bg-surface-secondary rounded-lg">
+              <button
+                onClick={() => setCurrentFilter('all')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  currentFilter === 'all'
+                    ? 'bg-surface text-foreground shadow-sm'
+                    : 'text-foreground-secondary hover:text-foreground'
+                }`}
+              >
+                <Grid3X3 size={16} />
+                すべて
+                {currentFilter === 'all' && images.length > 0 && (
+                  <span className="px-2 py-1 text-xs bg-surface-secondary text-foreground-secondary rounded-full">
+                    {images.length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setCurrentFilter('history')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  currentFilter === 'history'
+                    ? 'bg-surface text-foreground shadow-sm'
+                    : 'text-foreground-secondary hover:text-foreground'
+                }`}
+              >
+                <User size={16} />
+                私の作品
+                {currentFilter === 'history' && userImages.length > 0 && (
+                  <span className="px-2 py-1 text-xs bg-surface-secondary text-foreground-secondary rounded-full">
+                    {userImages.length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setCurrentFilter('favorites')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  currentFilter === 'favorites'
+                    ? 'bg-surface text-foreground shadow-sm'
+                    : 'text-foreground-secondary hover:text-foreground'
+                }`}
+              >
+                <Heart size={16} />
+                お気に入り
+                {currentFilter === 'favorites' && favoriteImages.length > 0 && (
+                  <span className="px-2 py-1 text-xs bg-surface-secondary text-foreground-secondary rounded-full">
+                    {favoriteImages.length}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+        
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="max-w-md"
+          >
+            <div className="text-8xl mb-8 opacity-40">{emptyState.icon}</div>
+            <h2 className="text-h2 font-semibold text-foreground mb-4">
+              {emptyState.title}
+            </h2>
+            <p className="text-body text-foreground-secondary leading-relaxed">
+              {emptyState.description}
+              {currentFilter === 'all' && (
+                <>
+                  <br />
+                  AIがあなたのビジョンを美しいファッションデザインに変換します
+                </>
+              )}
+            </p>
+          </motion.div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="relative">
+      {/* Filter Tabs */}
+      {isAuthenticated && (
+        <div className="flex items-center justify-center pt-6 mb-4">
+          <div className="flex items-center gap-1 p-1 bg-surface-secondary rounded-lg">
+            <button
+              onClick={() => setCurrentFilter('all')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                currentFilter === 'all'
+                  ? 'bg-surface text-foreground shadow-sm'
+                  : 'text-foreground-secondary hover:text-foreground'
+              }`}
+            >
+              <Grid3X3 size={16} />
+              すべて
+              {currentFilter === 'all' && images.length > 0 && (
+                <span className="px-2 py-1 text-xs bg-surface-secondary text-foreground-secondary rounded-full">
+                  {images.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setCurrentFilter('history')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                currentFilter === 'history'
+                  ? 'bg-surface text-foreground shadow-sm'
+                  : 'text-foreground-secondary hover:text-foreground'
+              }`}
+            >
+              <User size={16} />
+              私の作品
+              {currentFilter === 'history' && userImages.length > 0 && (
+                <span className="px-2 py-1 text-xs bg-surface-secondary text-foreground-secondary rounded-full">
+                  {userImages.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setCurrentFilter('favorites')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                currentFilter === 'favorites'
+                  ? 'bg-surface text-foreground shadow-sm'
+                  : 'text-foreground-secondary hover:text-foreground'
+              }`}
+            >
+              <Heart size={16} />
+              お気に入り
+              {currentFilter === 'favorites' && favoriteImages.length > 0 && (
+                <span className="px-2 py-1 text-xs bg-surface-secondary text-foreground-secondary rounded-full">
+                  {favoriteImages.length}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {filterLoading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <span className="ml-3 text-foreground-secondary">読み込み中...</span>
+        </div>
+      )}
+
       {/* Main feed container */}
-      <div 
-        ref={containerRef}
-        className="px-8 pt-8 pb-32" // Bottom padding to account for fixed prompt bar
-      >
-        {/* Grid Layout */}
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+      {!filterLoading && (
+        <div 
+          ref={containerRef}
+          className="px-8 pt-2 pb-32" // Bottom padding to account for fixed prompt bar
+        >
+          {/* Grid Layout */}
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
           <AnimatePresence mode="popLayout">
             {visibleImages.map((image, index) => (
               <motion.div
@@ -157,8 +374,10 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
               </div>
             </motion.div>
           )}
-        </AnimatePresence>
+          </AnimatePresence>
+        </div>
       </div>
+      )}
 
       {/* Scroll to top button */}
       <motion.button
