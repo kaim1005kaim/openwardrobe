@@ -17,7 +17,7 @@ interface ImageStore {
   addImage: (image: GeneratedImage) => void;
   updateImageStatus: (id: string, status: ImageStatus) => void;
   setGenerating: (isGenerating: boolean) => void;
-  toggleFavorite: (id: string) => void;
+  toggleFavorite: (id: string) => Promise<void>;
   clearImages: () => void;
   removeImage: (id: string) => void;
   
@@ -116,11 +116,38 @@ export const useImageStore = create<ImageStore>()(
       
       setGenerating: (isGenerating) => set({ isGenerating }),
       
-      toggleFavorite: (id) => set((state) => ({
-        favorites: state.favorites.includes(id)
-          ? state.favorites.filter(fav => fav !== id)
-          : [...state.favorites, id]
-      })),
+      toggleFavorite: async (id) => {
+        const state = get();
+        const isFavorited = state.favorites.includes(id);
+        
+        try {
+          if (isFavorited) {
+            // Remove from favorites
+            const response = await fetch(`/api/favorites/${id}`, {
+              method: 'DELETE'
+            });
+            if (response.ok) {
+              set((state) => ({
+                favorites: state.favorites.filter(fav => fav !== id)
+              }));
+            }
+          } else {
+            // Add to favorites
+            const response = await fetch('/api/favorites', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ imageId: id })
+            });
+            if (response.ok) {
+              set((state) => ({
+                favorites: [...state.favorites, id]
+              }));
+            }
+          }
+        } catch (error) {
+          console.error('Failed to toggle favorite:', error);
+        }
+      },
       
       clearImages: () => set({ images: [] }),
       

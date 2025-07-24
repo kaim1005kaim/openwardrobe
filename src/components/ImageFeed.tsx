@@ -7,6 +7,7 @@ import { GeneratedImage } from '@/lib/types';
 import { ImageCard } from './ImageCard';
 import { useJobStore } from '@/store/jobStore';
 import { useAuth } from '@/hooks/useAuth';
+import { useImageStore } from '@/store/imageStore';
 
 type GalleryFilter = 'all' | 'favorites' | 'history';
 
@@ -23,13 +24,13 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
   const containerRef = useRef<HTMLDivElement>(null);
   const { getJobById, highlightJob } = useJobStore();
   const { isAuthenticated } = useAuth();
+  const { getFavoriteImages } = useImageStore();
   const prevImagesLength = useRef(images.length);
   
   // Filter state
   const [currentFilter, setCurrentFilter] = useState<GalleryFilter>('all');
   const [filteredImages, setFilteredImages] = useState<GeneratedImage[]>(images);
   const [userImages, setUserImages] = useState<GeneratedImage[]>([]);
-  const [favoriteImages, setFavoriteImages] = useState<GeneratedImage[]>([]);
   const [filterLoading, setFilterLoading] = useState(false);
 
   // Grid layout breakpoints (horizontal layout instead of masonry)
@@ -67,30 +68,6 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
         } as GeneratedImage)) || [];
         setUserImages(userImages);
       }
-
-      // Fetch user's favorites
-      const favResponse = await fetch('/api/favorites');
-      if (favResponse.ok) {
-        const favData = await favResponse.json();
-        console.log('Favorites data:', favData);
-        // Transform the favorites data to GeneratedImage format
-        const favoriteImages = favData.favorites?.map((fav: any) => {
-          const image = fav.image;
-          return {
-            id: image.id,
-            prompt: image.prompt,
-            imageUrl: image.imageUrl,
-            status: image.status || 'completed',
-            timestamp: new Date(image.createdAt),
-            designOptions: image.designOptions || {},
-            upscaledUrls: image.upscaledUrls || [],
-            tags: image.tags || [],
-            progress: image.progress || 100
-          } as GeneratedImage;
-        }) || [];
-        console.log('Transformed favorite images:', favoriteImages);
-        setFavoriteImages(favoriteImages);
-      }
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
@@ -103,7 +80,7 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
     let sourceImages: GeneratedImage[];
     switch (currentFilter) {
       case 'favorites':
-        sourceImages = favoriteImages;
+        sourceImages = getFavoriteImages();
         break;
       case 'history':
         sourceImages = userImages;
@@ -115,14 +92,7 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
     }
     setFilteredImages(sourceImages);
     setVisibleImages(sourceImages.slice(0, 20)); // Reset visible images for new filter
-  }, [currentFilter, images, userImages, favoriteImages]);
-
-  // Force refetch when switching to favorites tab
-  useEffect(() => {
-    if (currentFilter === 'favorites' && isAuthenticated) {
-      fetchUserData();
-    }
-  }, [currentFilter]);
+  }, [currentFilter, images, userImages, favorites, getFavoriteImages]);
 
   // Fetch user data when component mounts or authentication changes
   useEffect(() => {
@@ -130,13 +100,6 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
       fetchUserData();
     }
   }, [isAuthenticated]);
-
-  // Refetch data when favorites change
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchUserData();
-    }
-  }, [favorites, isAuthenticated]);
 
   // Initialize visible images
   useEffect(() => {
@@ -264,9 +227,9 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
                 }`}
               >
                 お気に入り
-                {favoriteImages.length > 0 && (
+                {favorites.length > 0 && (
                   <span className="ml-2 text-xs text-foreground-secondary">
-                    {favoriteImages.length}
+                    {favorites.length}
                   </span>
                 )}
                 {currentFilter === 'favorites' && (
@@ -347,9 +310,9 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
               }`}
             >
               お気に入り
-              {favoriteImages.length > 0 && (
+              {favorites.length > 0 && (
                 <span className="ml-2 text-xs text-foreground-secondary">
-                  {favoriteImages.length}
+                  {favorites.length}
                 </span>
               )}
               {currentFilter === 'favorites' && (
