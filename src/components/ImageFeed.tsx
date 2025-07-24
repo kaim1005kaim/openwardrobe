@@ -342,51 +342,50 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
         >
           {/* Grid Layout */}
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-          <AnimatePresence mode="popLayout">
-            {visibleImages.map((image, index) => (
-              <motion.div
-                key={image.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ 
-                  duration: 0.25,
-                  delay: index * 0.02,
-                  ease: [0.22, 1, 0.36, 1]
-                }}
-                className="w-full"
-              >
-                <ImageCard
-                  image={image}
-                  isFavorite={favorites.includes(image.id)}
-                  isHighlighted={getJobById(image.id)?.isHighlighted || false}
-                  onImageClick={() => onImageClick(image)}
-                  onToggleFavorite={() => onToggleFavorite(image.id)}
-                  onDismissHighlight={() => highlightJob(image.id, false)}
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-
-        {/* Loading indicator */}
-        <AnimatePresence>
-          {isLoading && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex justify-center py-8"
-            >
-              <div className="flex items-center space-x-2 text-foreground-secondary">
-                <div className="w-2 h-2 bg-primary-accent rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                <div className="w-2 h-2 bg-primary-accent rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                <div className="w-2 h-2 bg-primary-accent rounded-full animate-bounce"></div>
-              </div>
-            </motion.div>
-          )}
-          </AnimatePresence>
+            <AnimatePresence mode="popLayout">
+              {visibleImages.map((image, index) => (
+                <motion.div
+                  key={image.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ 
+                    duration: 0.25,
+                    delay: index * 0.02,
+                    ease: [0.22, 1, 0.36, 1]
+                  }}
+                  className="w-full"
+                >
+                  <ImageCard
+                    image={image}
+                    isFavorite={favorites.includes(image.id)}
+                    isHighlighted={getJobById(image.id)?.isHighlighted || false}
+                    onImageClick={() => onImageClick(image)}
+                    onToggleFavorite={() => onToggleFavorite(image.id)}
+                    onDismissHighlight={() => highlightJob(image.id, false)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
+
+          {/* Loading indicator */}
+          <AnimatePresence>
+            {isLoading && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex justify-center py-8"
+              >
+                <div className="flex items-center space-x-2 text-foreground-secondary">
+                  <div className="w-2 h-2 bg-primary-accent rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                  <div className="w-2 h-2 bg-primary-accent rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                  <div className="w-2 h-2 bg-primary-accent rounded-full animate-bounce"></div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 
