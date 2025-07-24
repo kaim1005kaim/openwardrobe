@@ -53,7 +53,19 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
       if (userResponse.ok) {
         const userData = await userResponse.json();
         console.log('User images data:', userData);
-        setUserImages(userData.images || []);
+        // Transform the user images to GeneratedImage format
+        const userImages = userData.images?.map((image: any) => ({
+          id: image.id,
+          prompt: image.prompt,
+          imageUrl: image.imageUrl,
+          status: image.status || 'completed',
+          timestamp: new Date(image.createdAt),
+          designOptions: image.designOptions || {},
+          upscaledUrls: image.upscaledUrls || [],
+          tags: image.tags || [],
+          progress: image.progress || 100
+        } as GeneratedImage)) || [];
+        setUserImages(userImages);
       }
 
       // Fetch user's favorites
@@ -68,13 +80,15 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
             id: image.id,
             prompt: image.prompt,
             imageUrl: image.imageUrl,
-            status: image.status,
+            status: image.status || 'completed',
             timestamp: new Date(image.createdAt),
             designOptions: image.designOptions || {},
             upscaledUrls: image.upscaledUrls || [],
-            tags: image.tags || []
-          };
+            tags: image.tags || [],
+            progress: image.progress || 100
+          } as GeneratedImage;
         }) || [];
+        console.log('Transformed favorite images:', favoriteImages);
         setFavoriteImages(favoriteImages);
       }
     } catch (error) {
@@ -103,6 +117,13 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
     setVisibleImages(sourceImages.slice(0, 20)); // Reset visible images for new filter
   }, [currentFilter, images, userImages, favoriteImages]);
 
+  // Force refetch when switching to favorites tab
+  useEffect(() => {
+    if (currentFilter === 'favorites' && isAuthenticated) {
+      fetchUserData();
+    }
+  }, [currentFilter]);
+
   // Fetch user data when component mounts or authentication changes
   useEffect(() => {
     if (isAuthenticated) {
@@ -112,10 +133,10 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
 
   // Refetch data when favorites change
   useEffect(() => {
-    if (isAuthenticated && favorites.length > 0) {
+    if (isAuthenticated) {
       fetchUserData();
     }
-  }, [favorites.length, isAuthenticated]);
+  }, [favorites, isAuthenticated]);
 
   // Initialize visible images
   useEffect(() => {
@@ -174,21 +195,18 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
     switch (currentFilter) {
       case 'favorites':
         return {
-          icon: '✨',
           title: 'お気に入りがありません',
-          description: 'お気に入りに追加してみましょう！'
+          description: 'お気に入りに追加してみましょう'
         };
       case 'history':
         return {
-          icon: '✨',
           title: 'あなたの作品がありません',
-          description: '最初のファッションデザインを作成してみましょう！'
+          description: '最初のファッションデザインを作成してみましょう'
         };
       default:
         return {
-          icon: '✨',
           title: '創造の始まり',
-          description: '下のプロンプトバーにアイデアを入力して、'
+          description: '下のプロンプトバーにアイデアを入力して、AIがあなたのビジョンを美しいファッションデザインに変換します'
         };
     }
   };
@@ -266,18 +284,11 @@ export function ImageFeed({ images, onImageClick, onToggleFavorite, favorites }:
             transition={{ duration: 0.5 }}
             className="max-w-md"
           >
-            <div className="text-8xl mb-8 opacity-40">{emptyState.icon}</div>
             <h2 className="text-h2 font-semibold text-foreground mb-4">
               {emptyState.title}
             </h2>
             <p className="text-body text-foreground-secondary leading-relaxed">
               {emptyState.description}
-              {currentFilter === 'all' && (
-                <>
-                  <br />
-                  AIがあなたのビジョンを美しいファッションデザインに変換します
-                </>
-              )}
             </p>
           </motion.div>
         </div>
