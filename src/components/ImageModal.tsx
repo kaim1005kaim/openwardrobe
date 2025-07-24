@@ -184,7 +184,7 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="bg-glass-surface backdrop-blur-xl border border-surface/30 rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+      <div className="bg-glass-surface backdrop-blur-xl border border-surface/30 rounded-2xl max-w-6xl w-full max-h-[90vh] flex flex-col shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-surface/30 flex-shrink-0">
           <h2 className="text-h2 font-semibold text-foreground">
@@ -198,9 +198,9 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
           </button>
         </div>
 
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 min-h-0">
           {/* Left Side - Image */}
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-6 overflow-y-auto">
             <div className="bg-surface/30 rounded-2xl overflow-hidden border border-surface/20">
               <div className="aspect-square relative">
                 {image.status === 'completed' && image.imageUrl ? (
@@ -250,8 +250,9 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
           </div>
 
           {/* Right Side - Actions */}
-          <div className="w-80 p-6 border-l border-surface/30 overflow-y-auto">
-            <div className="space-y-6">
+          <div className="w-80 border-l border-surface/30 flex flex-col">
+            <div className="p-6 overflow-y-auto flex-1">
+              <div className="space-y-6">
               {/* Quadrant Selection */}
               {selectedQuadrant && (
                 <div className="bg-primary-accent/20 p-4 rounded-xl border border-primary-accent/30">
@@ -558,6 +559,7 @@ export function ImageModal({ image, isOpen, onClose }: ImageModalProps) {
                   <X className="w-4 h-4" />
                   <span>画像を削除</span>
                 </button>
+              </div>
               </div>
             </div>
           </div>
