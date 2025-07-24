@@ -20,18 +20,16 @@ const BlendRequestSchema = z.object({
 
 type BlendRequest = z.infer<typeof BlendRequestSchema>;
 
-interface MidjourneyBlendRequest {
-  image_urls: string[];
-  weights?: number[];
-  prompt?: string;
+interface ImagineAPIBlendRequest {
+  prompt: string;
+  model?: string;
   ref?: string;
-  webhook_override?: string;
 }
 
-interface MidjourneyResponse {
-  success: boolean;
-  messageId?: string;
-  error?: string;
+interface ImagineAPIResponse {
+  data: {
+    id: string;
+  };
 }
 
 export async function POST(req: NextRequest) {
@@ -85,65 +83,64 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check Midjourney API token
-    const mjToken = process.env.MIDJOURNEY_API_TOKEN;
-    if (!mjToken) {
-      console.error('❌ [Blend API] MIDJOURNEY_API_TOKEN not configured');
-      // Sentry.captureException(new Error('MIDJOURNEY_API_TOKEN not configured'));
+    // Check ImagineAPI token
+    const apiToken = process.env.IMAGINE_API_TOKEN;
+    const apiUrl = process.env.IMAGINE_API_URL || 'https://cl.imagineapi.dev';
+    const apiModel = process.env.IMAGINE_API_MODEL || 'midjourney';
+    
+    if (!apiToken || apiToken === 'your_imagine_api_token_here') {
+      console.error('❌ [Blend API] IMAGINE_API_TOKEN not configured');
+      // Sentry.captureException(new Error('IMAGINE_API_TOKEN not configured'));
       return NextResponse.json(
         { error: 'APIトークンが設定されていません' },
         { status: 500 }
       );
     }
 
-    // Get webhook URL
-    const webhookUrl = process.env.MIDJOURNEY_WEBHOOK_URL;
-    if (!webhookUrl) {
-      console.warn('⚠️ [Blend API] MIDJOURNEY_WEBHOOK_URL not configured');
-    }
-
-    // Prepare Midjourney API request
-    const mjRequest: MidjourneyBlendRequest = {
-      image_urls: imageUrls,
-      ...(weights && { weights }),
-      ...(prompt && { prompt }),
-      ...(ref && { ref }),
-      ...(webhookUrl && { webhook_override: webhookUrl })
+    // Create blend prompt for ImagineAPI
+    // ImagineAPIではblendコマンドを直接プロンプトで指定
+    const blendPrompt = `/blend ${imageUrls.join(' ')}${prompt ? ` ${prompt}` : ''}`;
+    
+    // Prepare ImagineAPI request
+    const apiRequest: ImagineAPIBlendRequest = {
+      prompt: blendPrompt,
+      model: apiModel,
+      ...(ref && { ref })
     };
 
-    console.log('📤 [Blend API] Sending to Midjourney:', {
-      ...mjRequest,
-      image_urls: mjRequest.image_urls.map(url => url.substring(0, 50) + '...')
+    console.log('📤 [Blend API] Sending to ImagineAPI:', {
+      ...apiRequest,
+      prompt: apiRequest.prompt.substring(0, 100) + '...'
     });
 
-    // Call Midjourney Blend API
-    const mjResponse = await fetch('https://api.midjourneyapi.xyz/mj/v2/blend', {
+    // Call ImagineAPI
+    const apiResponse = await fetch(`${apiUrl}/items/images/`, {
       method: 'POST',
       headers: {
-        'X-API-KEY': mjToken,
+        'Authorization': `Bearer ${apiToken}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(mjRequest)
+      body: JSON.stringify(apiRequest)
     });
 
-    const mjData: MidjourneyResponse = await mjResponse.json();
-    console.log('📥 [Blend API] Midjourney response:', mjData);
+    const apiData = await apiResponse.json();
+    console.log('📥 [Blend API] ImagineAPI response:', apiData);
 
-    if (!mjResponse.ok) {
-      console.error('❌ [Blend API] Midjourney API error:', mjData);
-      // Sentry.captureException(new Error(`Midjourney API error: ${mjData.error || mjResponse.statusText}`));
+    if (!apiResponse.ok) {
+      console.error('❌ [Blend API] ImagineAPI error:', apiData);
+      // Sentry.captureException(new Error(`ImagineAPI error: ${apiData.error || apiResponse.statusText}`));
       
       return NextResponse.json(
         { 
-          error: mjData.error || 'ブレンド生成に失敗しました',
-          details: mjData
+          error: apiData.error || 'ブレンド生成に失敗しました',
+          details: apiData
         },
-        { status: mjResponse.status }
+        { status: apiResponse.status }
       );
     }
 
-    if (!mjData.success || !mjData.messageId) {
-      console.error('❌ [Blend API] Unexpected response format:', mjData);
+    if (!apiData.data?.id) {
+      console.error('❌ [Blend API] Unexpected response format:', apiData);
       return NextResponse.json(
         { error: 'ブレンド生成の開始に失敗しました' },
         { status: 500 }
@@ -154,7 +151,7 @@ export async function POST(req: NextRequest) {
     try {
       const job = await prisma.generationJob.create({
         data: {
-          id: mjData.messageId,
+          id: apiData.data.id,
           userId: session.user.id,
           params: {
             prompt: prompt || `Blend of ${imageUrls.length} images`,
@@ -173,13 +170,13 @@ export async function POST(req: NextRequest) {
     } catch (dbError) {
       console.error('❌ [Blend API] Database error:', dbError);
       // Sentry.captureException(dbError);
-      // Continue anyway - the job was submitted to Midjourney
+      // Continue anyway - the job was submitted to ImagineAPI
     }
 
     // Return success response
     return NextResponse.json({
       success: true,
-      jobId: mjData.messageId,
+      jobId: apiData.data.id,
       message: 'ブレンド生成を開始しました'
     });
 

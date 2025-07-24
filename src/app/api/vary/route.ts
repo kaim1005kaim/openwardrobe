@@ -17,18 +17,16 @@ const VaryRequestSchema = z.object({
 
 type VaryRequest = z.infer<typeof VaryRequestSchema>;
 
-interface MidjourneyVaryRequest {
-  image_url: string;
-  variation: 'subtle' | 'strong';
-  prompt?: string;
+interface ImagineAPIVaryRequest {
+  prompt: string;
+  model?: string;
   ref?: string;
-  webhook_override?: string;
 }
 
-interface MidjourneyResponse {
-  success: boolean;
-  messageId?: string;
-  error?: string;
+interface ImagineAPIResponse {
+  data: {
+    id: string;
+  };
 }
 
 export async function POST(req: NextRequest) {
@@ -71,65 +69,65 @@ export async function POST(req: NextRequest) {
 
     const { imageUrl, variationType, prompt, ref } = validatedData;
 
-    // Check Midjourney API token
-    const mjToken = process.env.MIDJOURNEY_API_TOKEN;
-    if (!mjToken) {
-      console.error('❌ [Vary API] MIDJOURNEY_API_TOKEN not configured');
-      // Sentry.captureException(new Error('MIDJOURNEY_API_TOKEN not configured'));
+    // Check ImagineAPI token
+    const apiToken = process.env.IMAGINE_API_TOKEN;
+    const apiUrl = process.env.IMAGINE_API_URL || 'https://cl.imagineapi.dev';
+    const apiModel = process.env.IMAGINE_API_MODEL || 'midjourney';
+    
+    if (!apiToken || apiToken === 'your_imagine_api_token_here') {
+      console.error('❌ [Vary API] IMAGINE_API_TOKEN not configured');
+      // Sentry.captureException(new Error('IMAGINE_API_TOKEN not configured'));
       return NextResponse.json(
         { error: 'APIトークンが設定されていません' },
         { status: 500 }
       );
     }
 
-    // Get webhook URL
-    const webhookUrl = process.env.MIDJOURNEY_WEBHOOK_URL;
-    if (!webhookUrl) {
-      console.warn('⚠️ [Vary API] MIDJOURNEY_WEBHOOK_URL not configured');
-    }
-
-    // Prepare Midjourney API request
-    const mjRequest: MidjourneyVaryRequest = {
-      image_url: imageUrl,
-      variation: variationType,
-      ...(prompt && { prompt }),
-      ...(ref && { ref }),
-      ...(webhookUrl && { webhook_override: webhookUrl })
+    // Create vary prompt for ImagineAPI
+    // V1-V4ボタンをシミュレートするため、プロンプトにバリエーションコマンドを追加
+    const varyCommand = variationType === 'strong' ? '--vary 2' : '--vary 1';
+    const varyPrompt = `${imageUrl} ${varyCommand}${prompt ? ` ${prompt}` : ''}`;
+    
+    // Prepare ImagineAPI request
+    const apiRequest: ImagineAPIVaryRequest = {
+      prompt: varyPrompt,
+      model: apiModel,
+      ...(ref && { ref })
     };
 
-    console.log('📤 [Vary API] Sending to Midjourney:', {
-      ...mjRequest,
-      image_url: mjRequest.image_url.substring(0, 50) + '...'
+    console.log('📤 [Vary API] Sending to ImagineAPI:', {
+      ...apiRequest,
+      prompt: apiRequest.prompt.substring(0, 100) + '...'
     });
 
-    // Call Midjourney Vary API
-    const mjResponse = await fetch('https://api.midjourneyapi.xyz/mj/v2/vary', {
+    // Call ImagineAPI
+    const apiResponse = await fetch(`${apiUrl}/items/images/`, {
       method: 'POST',
       headers: {
-        'X-API-KEY': mjToken,
+        'Authorization': `Bearer ${apiToken}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(mjRequest)
+      body: JSON.stringify(apiRequest)
     });
 
-    const mjData: MidjourneyResponse = await mjResponse.json();
-    console.log('📥 [Vary API] Midjourney response:', mjData);
+    const apiData = await apiResponse.json();
+    console.log('📥 [Vary API] ImagineAPI response:', apiData);
 
-    if (!mjResponse.ok) {
-      console.error('❌ [Vary API] Midjourney API error:', mjData);
-      // Sentry.captureException(new Error(`Midjourney API error: ${mjData.error || mjResponse.statusText}`));
+    if (!apiResponse.ok) {
+      console.error('❌ [Vary API] ImagineAPI error:', apiData);
+      // Sentry.captureException(new Error(`ImagineAPI error: ${apiData.error || apiResponse.statusText}`));
       
       return NextResponse.json(
         { 
-          error: mjData.error || 'バリエーション生成に失敗しました',
-          details: mjData
+          error: apiData.error || 'バリエーション生成に失敗しました',
+          details: apiData
         },
-        { status: mjResponse.status }
+        { status: apiResponse.status }
       );
     }
 
-    if (!mjData.success || !mjData.messageId) {
-      console.error('❌ [Vary API] Unexpected response format:', mjData);
+    if (!apiData.data?.id) {
+      console.error('❌ [Vary API] Unexpected response format:', apiData);
       return NextResponse.json(
         { error: 'バリエーション生成の開始に失敗しました' },
         { status: 500 }
@@ -140,7 +138,7 @@ export async function POST(req: NextRequest) {
     try {
       const job = await prisma.generationJob.create({
         data: {
-          id: mjData.messageId,
+          id: apiData.data.id,
           userId: session.user.id,
           params: {
             prompt: prompt || `Variation of ${imageUrl}`,
@@ -159,13 +157,13 @@ export async function POST(req: NextRequest) {
     } catch (dbError) {
       console.error('❌ [Vary API] Database error:', dbError);
       // Sentry.captureException(dbError);
-      // Continue anyway - the job was submitted to Midjourney
+      // Continue anyway - the job was submitted to ImagineAPI
     }
 
     // Return success response
     return NextResponse.json({
       success: true,
-      jobId: mjData.messageId,
+      jobId: apiData.data.id,
       message: 'バリエーション生成を開始しました'
     });
 
