@@ -15,6 +15,8 @@ import { HistoryPanel } from '@/components/HistoryPanel';
 import { FavoritesPanel } from '@/components/FavoritesPanel';
 import { extractQuadrantFromImage, downloadImageFromBlob } from '@/lib/imageUtils';
 
+type GalleryFilter = 'all' | 'favorites' | 'history';
+
 interface ImageGalleryProps {
   images: GeneratedImage[];
 }
@@ -26,7 +28,61 @@ export function ImageGallery({ images }: ImageGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
+  const [currentFilter, setCurrentFilter] = useState<GalleryFilter>('all');
+  const [filteredImages, setFilteredImages] = useState<GeneratedImage[]>(images);
+  const [userImages, setUserImages] = useState<GeneratedImage[]>([]);
+  const [favoriteImages, setFavoriteImages] = useState<GeneratedImage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   
+  // Fetch user-specific data
+  const fetchUserData = async () => {
+    if (!isAuthenticated) return;
+    
+    setIsLoading(true);
+    try {
+      // Fetch user's images
+      const userResponse = await fetch('/api/images?userId=current');
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        setUserImages(userData.images || []);
+      }
+
+      // Fetch user's favorites
+      const favResponse = await fetch('/api/favorites');
+      if (favResponse.ok) {
+        const favData = await favResponse.json();
+        setFavoriteImages(favData.favorites?.map((fav: any) => fav.image) || []);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Update filtered images based on current filter
+  useEffect(() => {
+    switch (currentFilter) {
+      case 'favorites':
+        setFilteredImages(favoriteImages);
+        break;
+      case 'history':
+        setFilteredImages(userImages);
+        break;
+      case 'all':
+      default:
+        setFilteredImages(images);
+        break;
+    }
+  }, [currentFilter, images, userImages, favoriteImages]);
+
+  // Fetch user data when component mounts or authentication changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUserData();
+    }
+  }, [isAuthenticated]);
+
   // Handler for creating image variations
   const onVariation = (image: GeneratedImage, type: 'color' | 'pattern' | 'mood' | 'upscale') => {
     // This handler is defined at ImageCard level
@@ -52,52 +108,172 @@ export function ImageGallery({ images }: ImageGalleryProps) {
     setSelectedImage(null);
   };
 
-  if (images.length === 0) {
+  // Empty state based on current filter
+  const getEmptyStateContent = () => {
+    switch (currentFilter) {
+      case 'favorites':
+        return {
+          icon: '❤️',
+          title: 'お気に入りがありません',
+          description: 'ハートボタンをクリックしてお気に入りに追加してみましょう！'
+        };
+      case 'history':
+        return {
+          icon: '📜',
+          title: '履歴がありません',
+          description: '最初のファッションデザインを作成してみましょう！'
+        };
+      default:
+        return {
+          icon: '🎨',
+          title: 'まだデザインがありません',
+          description: '最初のファッションデザインを作成してみましょう！'
+        };
+    }
+  };
+
+  if (filteredImages.length === 0 && !isLoading) {
+    const emptyState = getEmptyStateContent();
     return (
-      <div className="text-center py-12">
-        <div className="text-6xl mb-4">🎨</div>
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-          まだデザインがありません
-        </h3>
-        <p className="text-gray-600 dark:text-gray-400">
-          最初のファッションデザインを作成してみましょう！
-        </p>
+      <div>
+        {/* Filter Tabs */}
+        {isAuthenticated && (
+          <div className="flex items-center gap-1 mb-6 p-1 bg-gray-100 rounded-lg w-fit">
+            <button
+              onClick={() => setCurrentFilter('all')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                currentFilter === 'all'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Grid3X3 size={16} />
+              すべて
+            </button>
+            <button
+              onClick={() => setCurrentFilter('history')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                currentFilter === 'history'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <User size={16} />
+              私の作品
+            </button>
+            <button
+              onClick={() => setCurrentFilter('favorites')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                currentFilter === 'favorites'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Heart size={16} />
+              お気に入り
+            </button>
+          </div>
+        )}
+        
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">{emptyState.icon}</div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            {emptyState.title}
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400">
+            {emptyState.description}
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
     <>
-      {/* Gallery Header with History Button */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <h2 className="text-lg font-medium text-gray-900">生成された画像</h2>
-          {images.length > 0 && (
-            <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
-              {images.length}
-            </span>
-          )}
-        </div>
-        
-        {isAuthenticated && (
+      {/* Filter Tabs */}
+      {isAuthenticated && (
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+            <button
+              onClick={() => setCurrentFilter('all')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                currentFilter === 'all'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Grid3X3 size={16} />
+              すべて
+              {currentFilter === 'all' && images.length > 0 && (
+                <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
+                  {images.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setCurrentFilter('history')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                currentFilter === 'history'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <User size={16} />
+              私の作品
+              {currentFilter === 'history' && userImages.length > 0 && (
+                <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
+                  {userImages.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setCurrentFilter('favorites')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                currentFilter === 'favorites'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Heart size={16} />
+              お気に入り
+              {currentFilter === 'favorites' && favoriteImages.length > 0 && (
+                <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
+                  {favoriteImages.length}
+                </span>
+              )}
+            </button>
+          </div>
+          
           <div className="flex gap-2">
             <button
               onClick={() => setShowFavorites(true)}
               className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <Heart size={16} />
-              お気に入り
+              パネル
             </button>
             <button
               onClick={() => setShowHistory(true)}
               className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <History size={16} />
-              履歴
+              パネル
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+      
+      {/* Gallery Header for non-authenticated users */}
+      {!isAuthenticated && (
+        <div className="flex items-center gap-2 mb-4">
+          <h2 className="text-lg font-medium text-gray-900">生成された画像</h2>
+          {filteredImages.length > 0 && (
+            <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
+              {filteredImages.length}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Loading State */}
       {isLoading && (
