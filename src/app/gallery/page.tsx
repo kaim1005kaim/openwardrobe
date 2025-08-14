@@ -1,11 +1,5 @@
-import { GalleryView } from '@/components/GalleryView';
-import { TabNavigation } from '@/components/TabNavigation';
+import { EnhancedGallery } from '@/components/EnhancedGallery';
 
 export default function GalleryPage() {
-  return (
-    <div>
-      <TabNavigation />
-      <GalleryView />
-    </div>
-  );
+  return <EnhancedGallery />;
 }
