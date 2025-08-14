@@ -17,6 +17,8 @@ import { ProgressCardSkeleton, createLoadingState } from '@/components/ProgressC
 import { useJobStore } from '@/store/jobStore';
 import { useNetworkStore } from '@/store/networkStore';
 import { GeneratedImage, LoadingPhase } from '@/lib/types';
+import Link from 'next/link';
+import { Wand2, Palette } from 'lucide-react';
 
 export default function HomePage() {
   const { 
@@ -489,11 +491,31 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background relative">
+      {/* Tab Navigation */}
+      <div className="fixed top-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto">
+          <nav className="flex space-x-8 px-6" aria-label="Tabs">
+            <div className="inline-flex items-center py-4 px-1 border-b-2 border-blue-500 text-blue-600 dark:text-blue-400 font-medium text-sm">
+              <Wand2 className="mr-2 h-5 w-5 text-blue-500 dark:text-blue-400" />
+              Create
+            </div>
+            <Link
+              href="/gallery"
+              className="group inline-flex items-center py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 font-medium text-sm transition-colors"
+            >
+              <Palette className="mr-2 h-5 w-5 text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300" />
+              Gallery
+            </Link>
+          </nav>
+        </div>
+      </div>
+
       {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="fixed top-0 left-0 right-0 z-30 bg-glass-surface backdrop-blur-xl border-b border-surface/30"
+        className="fixed left-0 right-0 z-30 bg-glass-surface backdrop-blur-xl border-b border-surface/30"
+        style={{ top: '64px' }}
       >
         <div className="px-8 py-6">
           <div className="flex items-center justify-between">
@@ -557,7 +579,7 @@ export default function HomePage() {
       />
 
       {/* Main Content */}
-      <main className="pt-36 relative z-10" data-tutorial="image-feed">
+      <main className="pt-48 relative z-10" data-tutorial="image-feed">
         {/* Progress Cards for Active Jobs */}
         {pendingJobs.length > 0 && (
           <div className="px-8 pb-6">

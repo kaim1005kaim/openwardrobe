@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ZoomIn, ZoomOut, Grid3X3, Grid2X2, LayoutGrid, Filter, Palette, Download, ExternalLink } from 'lucide-react';
+import { X, ZoomIn, ZoomOut, Grid3X3, Grid2X2, LayoutGrid, Filter, Palette, Download, ExternalLink, Wand2 } from 'lucide-react';
 import Masonry from 'react-masonry-css';
+import Link from 'next/link';
 
 interface GalleryImage {
   id: string;
@@ -45,7 +46,7 @@ export function EnhancedGallery() {
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const [colorFilter, setColorFilter] = useState('All');
-  const [gridSize, setGridSize] = useState(4); // 1-6 columns
+  const [gridSize, setGridSize] = useState(5); // 3, 5, 8 columns
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
@@ -53,10 +54,10 @@ export function EnhancedGallery() {
     const base = gridSize;
     return {
       default: base,
-      1536: Math.max(1, base - 1),
-      1280: Math.max(1, base - 1),
-      1024: Math.max(1, base - 2),
-      768: Math.max(1, base - 3),
+      1536: base === 8 ? 6 : base === 5 ? 4 : 3,
+      1280: base === 8 ? 5 : base === 5 ? 3 : 2,
+      1024: base === 8 ? 4 : base === 5 ? 3 : 2,
+      768: base === 8 ? 3 : 2,
       640: 1
     };
   }, [gridSize]);
@@ -154,8 +155,27 @@ export function EnhancedGallery() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Tab Navigation */}
+      <div className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto">
+          <nav className="flex space-x-8 px-6" aria-label="Tabs">
+            <Link
+              href="/"
+              className="group inline-flex items-center py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 font-medium text-sm transition-colors"
+            >
+              <Wand2 className="mr-2 h-5 w-5 text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300" />
+              Create
+            </Link>
+            <div className="inline-flex items-center py-4 px-1 border-b-2 border-blue-500 text-blue-600 dark:text-blue-400 font-medium text-sm">
+              <Palette className="mr-2 h-5 w-5 text-blue-500 dark:text-blue-400" />
+              Gallery
+            </div>
+          </nav>
+        </div>
+      </div>
+
       {/* Controls */}
-      <div className="sticky top-0 z-20 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 p-4">
+      <div className="sticky top-16 z-20 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 p-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-wrap items-center justify-between gap-4">
             {/* Color Filters */}
@@ -184,41 +204,25 @@ export function EnhancedGallery() {
 
             {/* Grid Size Controls */}
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setGridSize(Math.max(1, gridSize - 1))}
-                disabled={gridSize <= 1}
-                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:hover:bg-gray-600"
-              >
-                <ZoomOut className="w-4 h-4" />
-              </button>
-              
-              <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5, 6].map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setGridSize(size)}
-                    className={`
-                      p-1.5 rounded transition-colors
-                      ${gridSize === size 
-                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                      }
-                    `}
-                  >
-                    {size === 1 && <LayoutGrid className="w-4 h-4" />}
-                    {size === 2 && <Grid2X2 className="w-4 h-4" />}
-                    {size >= 3 && <Grid3X3 className="w-4 h-4" />}
-                  </button>
-                ))}
-              </div>
-              
-              <button
-                onClick={() => setGridSize(Math.min(6, gridSize + 1))}
-                disabled={gridSize >= 6}
-                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:hover:bg-gray-600"
-              >
-                <ZoomIn className="w-4 h-4" />
-              </button>
+              <span className="text-sm text-gray-600 dark:text-gray-400 mr-2">Grid:</span>
+              {[3, 5, 8].map((size) => (
+                <button
+                  key={size}
+                  onClick={() => setGridSize(size)}
+                  className={`
+                    px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1
+                    ${gridSize === size 
+                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                    }
+                  `}
+                >
+                  {size === 3 && <Grid2X2 className="w-4 h-4" />}
+                  {size === 5 && <Grid3X3 className="w-4 h-4" />}
+                  {size === 8 && <LayoutGrid className="w-4 h-4" />}
+                  {size}
+                </button>
+              ))}
             </div>
           </div>
 
