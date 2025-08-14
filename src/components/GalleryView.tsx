@@ -50,7 +50,9 @@ export function GalleryView({ folderUrl, folderId }: GalleryViewProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch images');
+        const errorMsg = data.error || 'Failed to fetch images';
+        const details = data.details || '';
+        throw new Error(details ? `${errorMsg}\n\n${details}` : errorMsg);
       }
 
       setImages(data.images || []);
@@ -125,7 +127,7 @@ export function GalleryView({ folderUrl, folderId }: GalleryViewProps) {
       <div className="max-w-7xl mx-auto p-4">
         {error && (
           <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400">
-            {error}
+            <div className="whitespace-pre-line">{error}</div>
           </div>
         )}
 
