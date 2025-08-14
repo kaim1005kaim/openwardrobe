@@ -5,7 +5,7 @@
 Add the following environment variable to your Vercel project:
 
 ### NEXT_PUBLIC_GOOGLE_API_KEY
-- **Value**: `AIzaSyDPnJII5um2cZJuKaqmdMgr9WvtWP1xtrQ`
+- **Value**: `[YOUR_GOOGLE_API_KEY_HERE]` (Contact project admin for the actual key)
 - **Environments**: Production, Preview, Development
 
 ## Setup Steps
