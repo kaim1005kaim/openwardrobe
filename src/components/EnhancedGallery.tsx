@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ZoomIn, ZoomOut, Grid3X3, Grid2X2, LayoutGrid, Filter, Palette, Download, ExternalLink, Wand2 } from 'lucide-react';
+import { X, ZoomIn, ZoomOut, Grid3X3, Grid2X2, LayoutGrid, Filter, Palette, Download, ExternalLink, Wand2, ChevronLeft, ChevronRight } from 'lucide-react';
 import Masonry from 'react-masonry-css';
 import Link from 'next/link';
 
@@ -37,18 +37,24 @@ const colorFilters: ColorFilter[] = [
 ];
 
 const FIXED_FOLDER_ID = '1h7NWBXZEsBT_JPgKALL7AISUYy-mdnsz';
-const IMAGES_PER_LOAD = 20;
 
 export function EnhancedGallery() {
   const [allImages, setAllImages] = useState<GalleryImage[]>([]);
-  const [displayedImages, setDisplayedImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const [colorFilter, setColorFilter] = useState('All');
   const [gridSize, setGridSize] = useState(5); // 3, 5, 8 columns
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  
+  // API pagination
+  const [currentApiPage, setCurrentApiPage] = useState(1);
+  const [nextPageToken, setNextPageToken] = useState<string | null>(null);
+  const [hasMoreFromApi, setHasMoreFromApi] = useState(true);
+  const [totalImagesLoaded, setTotalImagesLoaded] = useState(0);
+  
+  // Local pagination for display
+  const [currentDisplayPage, setCurrentDisplayPage] = useState(1);
+  const IMAGES_PER_DISPLAY_PAGE = 40;
 
   const breakpointColumns = useMemo(() => {
     const base = gridSize;
@@ -75,116 +81,77 @@ export function EnhancedGallery() {
     );
   }, [allImages, colorFilter]);
 
-  const fetchImages = useCallback(async () => {
+  const fetchImages = useCallback(async (pageToken?: string, isLoadMore = false) => {
     setLoading(true);
-    setError(null);
+    if (!isLoadMore) {
+      setError(null);
+    }
 
     try {
-      const response = await fetch(`/api/gallery?folderId=${FIXED_FOLDER_ID}`);
+      let url = `/api/gallery?folderId=${FIXED_FOLDER_ID}`;
+      if (pageToken) {
+        url += `&pageToken=${pageToken}`;
+      }
+
+      const response = await fetch(url);
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to fetch images');
       }
 
-      setAllImages(data.images || []);
+      const newImages = data.images || [];
+      
+      if (isLoadMore) {
+        setAllImages(prev => [...prev, ...newImages]);
+        setTotalImagesLoaded(prev => prev + newImages.length);
+      } else {
+        setAllImages(newImages);
+        setTotalImagesLoaded(newImages.length);
+      }
+      
+      setNextPageToken(data.nextPageToken || null);
+      setHasMoreFromApi(data.hasMore || false);
+      
+      console.log('📊 Fetched images:', {
+        newCount: newImages.length,
+        totalLoaded: isLoadMore ? totalImagesLoaded + newImages.length : newImages.length,
+        hasMore: data.hasMore,
+        nextPageToken: data.nextPageToken
+      });
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [totalImagesLoaded]);
 
-  const loadMoreImages = useCallback(() => {
-    if (loading) return; // Prevent multiple simultaneous loads
-    
-    const startIndex = (currentPage - 1) * IMAGES_PER_LOAD;
-    const endIndex = startIndex + IMAGES_PER_LOAD;
-    const newImages = filteredImages.slice(startIndex, endIndex);
-    
-    console.log('📦 loadMoreImages called:', {
-      currentPage,
-      startIndex,
-      endIndex,
-      newImagesCount: newImages.length,
-      totalFiltered: filteredImages.length,
-      hasMore: endIndex < filteredImages.length
-    });
-    
-    if (newImages.length === 0) {
-      setHasMore(false);
-      return;
-    }
-    
-    if (currentPage === 1) {
-      setDisplayedImages(newImages);
-    } else {
-      setDisplayedImages(prev => {
-        const updated = [...prev, ...newImages];
-        console.log('📸 Images updated:', {
-          previousCount: prev.length,
-          newCount: updated.length,
-          addedCount: newImages.length
-        });
-        return updated;
-      });
-    }
-    
-    setHasMore(endIndex < filteredImages.length);
-  }, [filteredImages, currentPage, loading]);
+  // Calculate displayed images based on current display page
+  const displayedImages = useMemo(() => {
+    const startIndex = (currentDisplayPage - 1) * IMAGES_PER_DISPLAY_PAGE;
+    const endIndex = startIndex + IMAGES_PER_DISPLAY_PAGE;
+    return filteredImages.slice(startIndex, endIndex);
+  }, [filteredImages, currentDisplayPage, IMAGES_PER_DISPLAY_PAGE]);
+
+  const totalPages = Math.ceil(filteredImages.length / IMAGES_PER_DISPLAY_PAGE);
+  const hasNextPage = currentDisplayPage < totalPages;
+  const hasPrevPage = currentDisplayPage > 1;
+
+  const loadMoreFromApi = useCallback(async () => {
+    if (loading || !hasMoreFromApi || !nextPageToken) return;
+    await fetchImages(nextPageToken, true);
+  }, [loading, hasMoreFromApi, nextPageToken, fetchImages]);
 
   // Initial load
   useEffect(() => {
     fetchImages();
   }, [fetchImages]);
 
-  // Reset pagination when filter changes
+  // Reset display pagination when filter changes
   useEffect(() => {
-    setCurrentPage(1);
-    setDisplayedImages([]);
-    setHasMore(true);
+    setCurrentDisplayPage(1);
   }, [colorFilter]);
-
-  // Load images when filter or page changes
-  useEffect(() => {
-    if (filteredImages.length > 0) {
-      loadMoreImages();
-    }
-  }, [loadMoreImages, filteredImages]);
-
-  // Infinite scroll with throttling
-  useEffect(() => {
-    let ticking = false;
-    
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-          const windowHeight = window.innerHeight;
-          const documentHeight = document.documentElement.offsetHeight;
-          
-          // Trigger load when user is 1000px from bottom
-          if (scrollTop + windowHeight >= documentHeight - 1000) {
-            if (hasMore && !loading && filteredImages.length > 0) {
-              console.log('🔄 Loading more images...', {
-                currentPage,
-                hasMore,
-                displayedCount: displayedImages.length,
-                totalFilteredCount: filteredImages.length
-              });
-              setCurrentPage(prev => prev + 1);
-            }
-          }
-          
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMore, loading, filteredImages.length, currentPage, displayedImages.length]);
 
   const getImageUrl = (image: GalleryImage, size: 'thumbnail' | 'full' = 'thumbnail') => {
     if (size === 'full' && image.webContentLink) {
@@ -270,10 +237,58 @@ export function EnhancedGallery() {
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            Showing {displayedImages.length} of {filteredImages.length} images
-            {colorFilter !== 'All' && ` (filtered by ${colorFilter})`}
+          {/* Stats and Pagination */}
+          <div className="mt-2 flex items-center justify-between">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              Showing {((currentDisplayPage - 1) * IMAGES_PER_DISPLAY_PAGE) + 1}-{Math.min(currentDisplayPage * IMAGES_PER_DISPLAY_PAGE, filteredImages.length)} of {filteredImages.length} images
+              {colorFilter !== 'All' && ` (filtered by ${colorFilter})`}
+              {hasMoreFromApi && (
+                <span className="ml-2 text-blue-600 dark:text-blue-400">
+                  • {totalImagesLoaded} loaded from Drive, more available
+                </span>
+              )}
+            </div>
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentDisplayPage(prev => Math.max(1, prev - 1))}
+                  disabled={!hasPrevPage}
+                  className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                
+                <span className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Page {currentDisplayPage} of {totalPages}
+                </span>
+                
+                <button
+                  onClick={() => {
+                    if (hasNextPage) {
+                      setCurrentDisplayPage(prev => prev + 1);
+                    } else if (hasMoreFromApi && !loading) {
+                      loadMoreFromApi();
+                    }
+                  }}
+                  disabled={!hasNextPage && !hasMoreFromApi}
+                  className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+                
+                {hasMoreFromApi && !hasNextPage && (
+                  <button
+                    onClick={loadMoreFromApi}
+                    disabled={loading}
+                    className="ml-2 px-3 py-1 text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50 rounded-lg dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800 transition-colors"
+                  >
+                    {loading ? 'Loading...' : 'Load More from Drive'}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

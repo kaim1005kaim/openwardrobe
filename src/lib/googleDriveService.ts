@@ -61,23 +61,30 @@ export class GoogleDriveService {
     }
   }
 
-  async getPublicImagesFromFolder(folderId: string): Promise<DriveImage[]> {
+  async getPublicImagesFromFolder(folderId: string, pageToken?: string): Promise<{images: DriveImage[], nextPageToken?: string}> {
     try {
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
       if (!apiKey) {
         throw new Error('Google API key not configured');
       }
 
-      const response = await fetch(
-        `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+(mimeType+contains+'image/')&fields=files(id,name,thumbnailLink,webViewLink,webContentLink,mimeType,createdTime,modifiedTime)&key=${apiKey}`
-      );
+      let url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+(mimeType+contains+'image/')&fields=files(id,name,thumbnailLink,webViewLink,webContentLink,mimeType,createdTime,modifiedTime),nextPageToken&pageSize=100&key=${apiKey}`;
+      
+      if (pageToken) {
+        url += `&pageToken=${pageToken}`;
+      }
+
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch images: ${response.statusText}`);
       }
 
       const data = await response.json();
-      return data.files || [];
+      return {
+        images: data.files || [],
+        nextPageToken: data.nextPageToken
+      };
     } catch (error) {
       console.error('Failed to fetch public images from Google Drive:', error);
       throw error;

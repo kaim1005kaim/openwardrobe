@@ -38,10 +38,16 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log('Fetching images from folder ID:', actualFolderId);
-    const images = await googleDriveService.getPublicImagesFromFolder(actualFolderId!);
+    const pageToken = searchParams.get('pageToken');
     
-    return NextResponse.json({ images });
+    console.log('Fetching images from folder ID:', actualFolderId, 'pageToken:', pageToken);
+    const result = await googleDriveService.getPublicImagesFromFolder(actualFolderId!, pageToken || undefined);
+    
+    return NextResponse.json({
+      images: result.images,
+      nextPageToken: result.nextPageToken,
+      hasMore: !!result.nextPageToken
+    });
   } catch (error) {
     console.error('Gallery API error:', error);
     
