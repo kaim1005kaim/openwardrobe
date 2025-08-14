@@ -23,7 +23,7 @@ export function TabNavigation() {
   ];
 
   return (
-    <div className="border-b border-gray-200 dark:border-gray-700">
+    <div className="fixed top-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <nav className="flex space-x-8 px-6" aria-label="Tabs">
         {tabs.map((tab) => {
           const Icon = tab.icon;

@@ -91,8 +91,8 @@ export function GalleryView({ folderUrl, folderId }: GalleryViewProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={{ paddingTop: '60px' }}>
+      <div className="sticky z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4" style={{ top: '60px' }}>
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
             <FolderOpen className="w-6 h-6 text-gray-600 dark:text-gray-400" />

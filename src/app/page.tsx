@@ -14,6 +14,7 @@ import { ControlDrawer } from '@/components/ControlDrawer';
 import { ImageModal } from '@/components/ImageModal';
 import { SelectionSummaryBar } from '@/components/SelectionSummaryBar';
 import { ProgressCardSkeleton, createLoadingState } from '@/components/ProgressCardSkeleton';
+import { TabNavigation } from '@/components/TabNavigation';
 import { useJobStore } from '@/store/jobStore';
 import { useNetworkStore } from '@/store/networkStore';
 import { GeneratedImage, LoadingPhase } from '@/lib/types';
@@ -489,11 +490,15 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background relative">
+      {/* Tab Navigation */}
+      <TabNavigation />
+      
       {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="fixed top-0 left-0 right-0 z-30 bg-glass-surface backdrop-blur-xl border-b border-surface/30"
+        className="fixed left-0 right-0 z-30 bg-glass-surface backdrop-blur-xl border-b border-surface/30"
+        style={{ top: '60px' }}
       >
         <div className="px-8 py-6">
           <div className="flex items-center justify-between">
@@ -557,7 +562,7 @@ export default function HomePage() {
       />
 
       {/* Main Content */}
-      <main className="pt-36 relative z-10" data-tutorial="image-feed">
+      <main className="pt-44 relative z-10" data-tutorial="image-feed">
         {/* Progress Cards for Active Jobs */}
         {pendingJobs.length > 0 && (
           <div className="px-8 pb-6">
