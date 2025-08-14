@@ -96,18 +96,42 @@ export function EnhancedGallery() {
   }, []);
 
   const loadMoreImages = useCallback(() => {
+    if (loading) return; // Prevent multiple simultaneous loads
+    
     const startIndex = (currentPage - 1) * IMAGES_PER_LOAD;
     const endIndex = startIndex + IMAGES_PER_LOAD;
     const newImages = filteredImages.slice(startIndex, endIndex);
     
+    console.log('📦 loadMoreImages called:', {
+      currentPage,
+      startIndex,
+      endIndex,
+      newImagesCount: newImages.length,
+      totalFiltered: filteredImages.length,
+      hasMore: endIndex < filteredImages.length
+    });
+    
+    if (newImages.length === 0) {
+      setHasMore(false);
+      return;
+    }
+    
     if (currentPage === 1) {
       setDisplayedImages(newImages);
     } else {
-      setDisplayedImages(prev => [...prev, ...newImages]);
+      setDisplayedImages(prev => {
+        const updated = [...prev, ...newImages];
+        console.log('📸 Images updated:', {
+          previousCount: prev.length,
+          newCount: updated.length,
+          addedCount: newImages.length
+        });
+        return updated;
+      });
     }
     
     setHasMore(endIndex < filteredImages.length);
-  }, [filteredImages, currentPage]);
+  }, [filteredImages, currentPage, loading]);
 
   // Initial load
   useEffect(() => {
@@ -118,6 +142,7 @@ export function EnhancedGallery() {
   useEffect(() => {
     setCurrentPage(1);
     setDisplayedImages([]);
+    setHasMore(true);
   }, [colorFilter]);
 
   // Load images when filter or page changes
@@ -127,20 +152,39 @@ export function EnhancedGallery() {
     }
   }, [loadMoreImages, filteredImages]);
 
-  // Infinite scroll
+  // Infinite scroll with throttling
   useEffect(() => {
+    let ticking = false;
+    
     const handleScroll = () => {
-      if (window.innerHeight + document.documentElement.scrollTop >= 
-          document.documentElement.offsetHeight - 1000) {
-        if (hasMore && !loading) {
-          setCurrentPage(prev => prev + 1);
-        }
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+          const windowHeight = window.innerHeight;
+          const documentHeight = document.documentElement.offsetHeight;
+          
+          // Trigger load when user is 1000px from bottom
+          if (scrollTop + windowHeight >= documentHeight - 1000) {
+            if (hasMore && !loading && filteredImages.length > 0) {
+              console.log('🔄 Loading more images...', {
+                currentPage,
+                hasMore,
+                displayedCount: displayedImages.length,
+                totalFilteredCount: filteredImages.length
+              });
+              setCurrentPage(prev => prev + 1);
+            }
+          }
+          
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMore, loading]);
+  }, [hasMore, loading, filteredImages.length, currentPage, displayedImages.length]);
 
   const getImageUrl = (image: GalleryImage, size: 'thumbnail' | 'full' = 'thumbnail') => {
     if (size === 'full' && image.webContentLink) {
