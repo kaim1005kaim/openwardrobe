@@ -153,6 +153,19 @@ export function EnhancedGallery() {
     setCurrentDisplayPage(1);
   }, [colorFilter]);
 
+  // Auto-load more images when approaching the end of current data
+  useEffect(() => {
+    const isNearEnd = currentDisplayPage >= totalPages - 1; // Within 1 page of the end
+    if (isNearEnd && hasMoreFromApi && !loading) {
+      console.log('🔄 Auto-loading more images from API...', {
+        currentDisplayPage,
+        totalPages,
+        hasMoreFromApi
+      });
+      loadMoreFromApi();
+    }
+  }, [currentDisplayPage, totalPages, hasMoreFromApi, loading, loadMoreFromApi]);
+
   const getImageUrl = (image: GalleryImage, size: 'thumbnail' | 'full' = 'thumbnail') => {
     if (size === 'full' && image.webContentLink) {
       return image.webContentLink;
@@ -265,20 +278,14 @@ export function EnhancedGallery() {
                 </span>
                 
                 <button
-                  onClick={() => {
-                    if (hasNextPage) {
-                      setCurrentDisplayPage(prev => prev + 1);
-                    } else if (hasMoreFromApi && !loading) {
-                      loadMoreFromApi();
-                    }
-                  }}
-                  disabled={!hasNextPage && !hasMoreFromApi}
+                  onClick={() => setCurrentDisplayPage(prev => prev + 1)}
+                  disabled={!hasNextPage}
                   className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
                 
-                {hasMoreFromApi && !hasNextPage && (
+                {hasMoreFromApi && (
                   <button
                     onClick={loadMoreFromApi}
                     disabled={loading}
