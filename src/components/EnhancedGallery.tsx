@@ -266,7 +266,7 @@ export function EnhancedGallery() {
                 >
                   <img
                     src={getImageUrl(image)}
-                    alt={image.name}
+                    alt=""
                     className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
                     loading="lazy"
                   />
@@ -316,7 +316,7 @@ export function EnhancedGallery() {
                 {selectedImage.webContentLink && (
                   <a
                     href={selectedImage.webContentLink}
-                    download={selectedImage.name}
+                    download="image.png"
                     className="p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
                   >
                     <Download className="w-5 h-5 text-white" />
@@ -331,7 +331,7 @@ export function EnhancedGallery() {
               </div>
               <img
                 src={getImageUrl(selectedImage, 'full')}
-                alt={selectedImage.name}
+                alt=""
                 className="max-w-full max-h-[90vh] object-contain"
               />
             </motion.div>
